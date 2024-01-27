@@ -20,6 +20,12 @@ CREATE TABLE project_states(
     state_name VARCHAR(255) NOT NULL
 );
 
+INSERT INTO project_states (state_name) VALUES
+("en curso"),
+("terminado"),
+("cancelado"),
+("en pausa");
+
 CREATE TABLE projects(
 	id_project INT PRIMARY KEY AUTO_INCREMENT,
     project_name VARCHAR(255) NOT NULL,
