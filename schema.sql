@@ -8,6 +8,13 @@ CREATE TABLE rols(
     permissions JSON
 );
 
+INSERT INTO rols (title, rol_description) VALUES 
+("administrator", "tiene acceso a todas las caracteristicas del sistema"),
+("team leader", "puede gestionar las cargas de trabajo de los miembros de un equipo y cambiar el estado del proyecto"),
+("employee", "puede visualizar su equipo y editar su informacion"),
+("registrators", "solo puedo agregar trabajadores"),
+("warehouse admin", "administra solo el almacen");
+
 CREATE TABLE project_states(
 	id_project_state INT PRIMARY KEY AUTO_INCREMENT,
     state_name VARCHAR(255) NOT NULL
@@ -49,10 +56,12 @@ CREATE INDEX  idx_material_name ON materials(material_name);
 CREATE TABLE users(
 	id_user INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
     email VARCHAR(255) NOT NULL,
     speciality VARCHAR(255),
     workload VARCHAR(255),
+    is_activate TINYINT NOT NULL,
+    activation_token VARCHAR(100),
     
     rol_fk INT NOT NULL,
     FOREIGN KEY (rol_fk) REFERENCES rols(id_rol),
