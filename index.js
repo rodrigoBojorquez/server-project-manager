@@ -1,5 +1,7 @@
 import express from "express"
 import cors from "cors"
+import swaggerUi from "swagger-ui-express"
+import {swaggerSpec} from "./swaggerConfig.js"
 
 // ROUTES HERE
 import employeesRouter from "./src/routes/employeesRoutes.js"
@@ -19,6 +21,8 @@ app.use((err, req, res, next) => {
 })
 
 app.use("/project-manager", employeesRouter, userRouter)
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 app.listen(8000, () => {
     console.log(`Server running in port ${8000}`)

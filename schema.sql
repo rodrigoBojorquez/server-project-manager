@@ -57,7 +57,7 @@ CREATE TABLE users(
 	id_user INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255),
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUe,
     speciality VARCHAR(255),
     workload VARCHAR(255),
     is_activate TINYINT NOT NULL,

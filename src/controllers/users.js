@@ -29,11 +29,17 @@ export const createUser  = async (req, res) =>  {
                 error: "invalid user rol"
             })
         }
-
         const rolObj = rols.find(obj => obj.title == rol)
         const idRol = rolObj.id_rol
 
         const { username, email, speciality } = req.body
+
+        if (validateEmail(email)) {
+            res.status(403).json({
+                error: "the email has already been used"
+            })
+        }
+
         // GENERATE TOKEN
         const activationToken = generateActivationToken()
 
@@ -120,6 +126,68 @@ export const activateUser = async (req, res) => {
         return res.status(500).json({
             error: err.message
         })
+    }
+}
+
+// DELETE USER ENDPOINT
+export const deleteUser = async (req, res) => {
+
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    }
+    try {
+        const { id } = req.params
+
+        // VALIDATE THE id
+        const querySearch = "SELECT * FROM users WHERE id_user = ?"
+        const [ user ] = await connection.promise().query({sql: querySearch, values: [id]})
+    
+        if (user.length == 0) {
+            return res.status(404).json({
+                error: "the provided id isn't valid"
+            })
+        }
+    
+        if (user[0].rol_fk == 1) {
+            return res.status(403).json({
+                error: "cannot eliminate an administrator"
+            })
+        }
+    
+        const idUser = user[0].id_user
+
+        const queryDelete = "DELETE FROM users WHERE id_user = ?"
+        const [ response ] = await connection.promise().query({sql: queryDelete, values: [idUser]})
+    
+        return res.json({
+            message: "the user has been deleted successfully",
+            data: response
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: err
+        })
+    }
+}
+
+// VALIDATE EMAIL
+const validateEmail = async (email) => {
+    try {
+        const [ response ] = await connection.promise().query("SELECT * FROM users WHERE email = ?", [email])
+        if (response.length > 0) {
+            return true
+        }
+        else {
+            return false
+        }
+    }
+    catch (err) {
+        throw new Error(err.message);
     }
 }
 
