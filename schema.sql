@@ -42,7 +42,7 @@ CREATE TABLE teams(
 	id_team INT PRIMARY KEY AUTO_INCREMENT,
 	team_name VARCHAR(255) NOT NULL,
     
-    project_fk INT NOT NULL,
+    project_fk INT,
     FOREIGN KEY (project_fk) REFERENCES projects(id_project)
 );
 
@@ -50,7 +50,7 @@ CREATE INDEX idx_team_name ON teams(team_name);
 
 CREATE TABLE materials(
 	id_material INT PRIMARY KEY AUTO_INCREMENT,
-    material_name VARCHAR(255) NOT NULL,
+    material_name VARCHAR(255) NOT NULL UNIQUE,
     create_date DATETIME NOT NULL,
 	update_date DATETIME,
     quantity FLOAT,
