@@ -57,6 +57,12 @@ export const getMaterials = async (req, res) => {
             const searchTerm = `%${search}%`
             const [ results ] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15])
 
+            if (results.length == 0) {
+                return res.json({
+                    message: "there's no materials found"
+                })
+            }
+
             return res.json({
                 message: "successful request",
                 data: results
@@ -66,6 +72,12 @@ export const getMaterials = async (req, res) => {
             // search the warehouse 15 by 15
             const queryPage = "SELECT * FROM materials LIMIT 15 OFFSET ?"
             const [ results ] = await connection.promise().query(queryPage, [(page - 1) * 15])
+
+            if (results.length == 0) {
+                return res.json({
+                    message: "there's no materials found"
+                })
+            }
 
             return res.json({
                 message: "successful request",
@@ -81,11 +93,92 @@ export const getMaterials = async (req, res) => {
 }
 
 
-export const updateMaterial = (req, res) => {
+export const updateMaterial = async (req, res) => {
+    const errors = validationResult(req)
 
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    }
+
+    try {
+        const { id } = req.params
+        const { materialName, quantity, measure } = req.body
+
+        // retrieve existing material data
+        const querySearch = 'SELECT * FROM materials WHERE id_material = ?';
+        const [existingMaterial] = await connection.promise().query({ sql: querySearch, values: [id] });
+
+        if (existingMaterial.length === 0) {
+            return res.status(404).json({
+                error: 'material not found'
+            })
+        }
+
+        // merge existing data with request body
+        const updatedMaterial = {
+            materialName: materialName || existingMaterial[0].material_name,
+            quantity: quantity || existingMaterial[0].quantity,
+            measure: measure || existingMaterial[0].measure
+            // Add more fields if needed
+        }
+
+        // Update the material in the db
+        const queryUpdate = 'UPDATE materials SET material_name = ?, quantity = ?, measure = ? WHERE id_material = ?';
+        await connection.promise().query({
+            sql: queryUpdate,
+            values: [updatedMaterial.materialName, updatedMaterial.quantity, updatedMaterial.measure, id]
+        })
+
+        return res.json({
+            message: 'material updated successfully',
+            data: updatedMaterial
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
+    }
 }
 
 
-export const deleteMaterial = (req, res) => { 
+export const deleteMaterial = async (req, res) => { 
+    const errors = validationResult(req)
 
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    }
+
+    try {
+        const { id } = req.params
+
+        // VALIDATE THE id
+        const querySearch = "SELECT * FROM materials WHERE id_material = ?"
+        const [ material ] = await connection.promise().query({sql: querySearch, values: [id]})
+    
+        if (material.length == 0) {
+            return res.status(404).json({
+                error: "the provided id isn't valid"
+            })
+        }
+
+        const idMaterial = material[0].id_material
+
+        const queryDelete = "DELETE FROM materials WHERE id_material = ?"
+        const [ response ] = await connection.promise().query({sql: queryDelete, values: [idMaterial]})
+    
+        return res.json({
+            message: "the material has been deleted successfully",
+            data: response
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
+    }
 }

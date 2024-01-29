@@ -34,8 +34,9 @@ export const createUser  = async (req, res) =>  {
 
         const { username, email, speciality } = req.body
 
-        if (validateEmail(email)) {
-            res.status(403).json({
+        const isEmailUsed = await validateEmail(email)
+        if (isEmailUsed) {
+            return res.status(403).json({
                 error: "the email has already been used"
             })
         }
@@ -178,16 +179,11 @@ export const deleteUser = async (req, res) => {
 // VALIDATE EMAIL
 const validateEmail = async (email) => {
     try {
-        const [ response ] = await connection.promise().query("SELECT * FROM users WHERE email = ?", [email])
-        if (response.length > 0) {
-            return true
-        }
-        else {
-            return false
-        }
-    }
-    catch (err) {
-        throw new Error(err.message);
+        const [response] = await connection.promise().query("SELECT * FROM users WHERE email = ?", [email])
+
+        return response.length > 0
+    } catch (err) {
+        throw new Error(err.message)
     }
 }
 
