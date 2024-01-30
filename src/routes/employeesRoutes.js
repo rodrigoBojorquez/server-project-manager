@@ -1,5 +1,6 @@
 import express from "express"
 import { body, query } from "express-validator"
+import { getEmployees } from "../controllers/employees.js"
 
 const employeesRouter = express.Router()
 
@@ -8,5 +9,7 @@ const employeesRouter = express.Router()
 
 
 // ROUTES HERE
+
+employeesRouter.post('/employees',getEmployees);
 
 export default employeesRouter

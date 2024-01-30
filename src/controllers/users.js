@@ -33,13 +33,13 @@ export const createUser  = async (req, res) =>  {
         const rolObj = rols.find(obj => obj.title == rol)
         const idRol = rolObj.id_rol
 
-        const { username, email, speciality } = req.body
-        // GENERATE TOKEN
+        const { username, email, speciality, rol_fk } = req.body
+    //     // GENERATE TOKEN
         const activationToken = generateActivationToken()
 
         // INSERT USER
         const queryInsert = "INSERT INTO users (username, email, speciality, rol_fk, activation_token, is_activate) VALUES (?, ?, ?, ?, ?, ?);"
-        const [ response ] = await connection.promise().query({sql: queryInsert, values: [username, email, speciality, idRol, activationToken, 0]})
+        const [ response ] = await connection.promise().query({sql: queryInsert, values: [username, email, speciality, rol_fk, activationToken, 0]})
 
         // SEND EMAIL
         const transporter = nodemailer.createTransport({
@@ -146,3 +146,5 @@ const hashPass = (rawPass) => {
         })
     })
 } 
+
+// TODO: PUT USERS

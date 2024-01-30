@@ -18,7 +18,8 @@ const activateUserChain = [
 ]
 
 // ROUTES HERE
-userRouter.post("/user", createUserChain, createUser)
+// userRouter.post("/user", createUserChain, createUser)
+userRouter.post("/user", createUser)
 userRouter.put("/user/activate", activateUserChain, activateUser)
 
 export default userRouter

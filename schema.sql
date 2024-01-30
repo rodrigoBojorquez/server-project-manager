@@ -1,3 +1,5 @@
+-- Active: 1698940124006@@127.0.0.1@3306@project_manager
+
 CREATE DATABASE project_manager;
 USE project_manager;
 
