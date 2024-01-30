@@ -32,10 +32,10 @@ CREATE TABLE projects(
 	id_project INT PRIMARY KEY AUTO_INCREMENT,
     project_name VARCHAR(255) NOT NULL,
     project_description VARCHAR(1000) NOT NULL,
-    create_date DATETIME NOT NULL,
+    create_date DATETIME  NOT NULL,
     
     project_state_fk INT NOT NULL,
-    FOREIGN KEY (project_state_fk) REFERENCES project_states(id_project_state)
+    FOREIGN KEY (project_state_fk) REFERENCES project_states(id_project_state) ON CASCADE 
 );
 
 CREATE INDEX idx_project_name ON projects(project_name);
@@ -91,6 +91,11 @@ CREATE TABLE users(
 CREATE INDEX idx_email ON users(email);
 
 
-INSERT INTO users (
-    username, password, email, speciality, is_activate,activation_token, rol_fk, team_fk) VALUES (
-    "israel", "123456", "full-stack", 0, "sddsdsds", 3, 4);
+
+INSERT INTO projects (project_name, project_description, project_state_fk, create_date) 
+VALUES (
+    "Prueba 1",
+    "dkodffjijddsoifjdsiofdjfsdjiofdijofiod",
+    1,
+    '2024-01-30 12:34:56'
+);

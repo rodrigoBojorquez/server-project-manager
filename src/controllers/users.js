@@ -215,7 +215,7 @@ const hashPass = (rawPass) => {
 
 export const updateUsers = async (req, res) => {
     const { rol } = req.query;
-    const { id_user, email, workload, isActivate, userId, username } = req.body;
+    const { id_user, email, workload, isActivate, username } = req.body;
 
     try {
         // Verificar si el rol proporcionado es válido
@@ -249,9 +249,9 @@ export const updateUsers = async (req, res) => {
       ];
   
       const queryUpdateUser = `UPDATE users SET ${updateFields.join(', ')} WHERE id_user = ?`;
-      const [actualizado] = await connection.promise().query(queryUpdateUser, updateParams);
+      const [updated] = await connection.promise().query(queryUpdateUser, updateParams);
   
-      return res.status(200).json({ message: `User updated successfully. Rows affected: ${actualizado.affectedRows}` });
+      return res.status(200).json({ message: `User updated successfully. Rows affected: ${updated.affectedRows}` });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
