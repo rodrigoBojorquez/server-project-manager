@@ -125,15 +125,15 @@ export const updateMaterial = async (req, res) => {
         }
 
         // Update the material in the db
-        const queryUpdate = 'UPDATE materials SET material_name = ?, quantity = ?, measure = ? WHERE id_material = ?';
-        await connection.promise().query({
+        const queryUpdate = 'UPDATE materials SET material_name = ?, quantity = ?, measure = ?, update_date = NOW() WHERE id_material = ?';
+        const [ newMaterial ] = await connection.promise().query({
             sql: queryUpdate,
             values: [updatedMaterial.materialName, updatedMaterial.quantity, updatedMaterial.measure, id]
         })
 
         return res.json({
             message: 'material updated successfully',
-            data: updatedMaterial
+            data: newMaterial
         })
     }
     catch (err) {

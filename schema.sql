@@ -61,6 +61,16 @@ CREATE TABLE materials(
 
 CREATE INDEX  idx_material_name ON materials(material_name);
 
+CREATE TABLE project_materials (
+    id_project_material INT PRIMARY KEY AUTO_INCREMENT,
+    quantity FLOAT,
+    project_fk INT,
+    material_fk INT,
+
+    FOREIGN KEY (project_fk) REFERENCES projects(id_project),
+    FOREIGN KEY (material_fk) REFERENCES materials(id_material)
+);
+
 CREATE TABLE users(
 	id_user INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
