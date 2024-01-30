@@ -1,6 +1,6 @@
 import express from "express"
 import { body, query, param } from "express-validator"
-import { activateUser, createUser, deleteUser } from "../controllers/users.js"
+import { activateUser, createUser, deleteUser, updateUsers } from "../controllers/users.js"
 
 const userRouter = express.Router()
 
@@ -24,6 +24,7 @@ const deleteUserChain = [
 // ROUTES HERE
 userRouter.put("/user/activate", activateUserChain, activateUser)
 userRouter.post("/user", createUserChain, createUser)
+userRouter.put("/user/:id",createUserChain, updateUsers)
 userRouter.put("/public/user/activate", activateUserChain, activateUser)
 userRouter.delete("/user/:id", deleteUserChain, deleteUser)
 

@@ -9,6 +9,6 @@ const employeesRouter = express.Router()
 
 // ROUTES HERE
 
-employeesRouter.post('/employees',getEmployees);
+employeesRouter.get('/employees',getEmployees);
 
 export default employeesRouter

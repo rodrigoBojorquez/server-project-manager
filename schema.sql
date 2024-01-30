@@ -79,3 +79,8 @@ CREATE TABLE users(
 );
 
 CREATE INDEX idx_email ON users(email);
+
+
+INSERT INTO users (
+    username, password, email, speciality, is_activate,activation_token, rol_fk, team_fk) VALUES (
+    "israel", "123456", "full-stack", 0, "sddsdsds", 3, 4);
