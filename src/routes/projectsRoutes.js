@@ -7,7 +7,8 @@ const projectRouter = express.Router()
 // VALIDATIONS HERE
 const createProjectChain = [
     body("projectName").trim().isString().isLength({min: 5, max: 255}).withMessage("the name must be greater than 5 and lower than 255"),
-    body("projectDescription").trim().isString().isLength({min: 3, max: 1000}).withMessage("description must be greater than 3 and lower than 1000")
+    body("projectDescription").trim().isString().isLength({min: 3, max: 1000}).withMessage("description must be greater than 3 and lower than 1000"),
+    body("materials").isArray().optional()       // me gustaria validar mas pero no me deja
 ]
 
 const getProjectsChain = [

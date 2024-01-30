@@ -11,7 +11,7 @@ export const createProject = async (req, res) => {
     }
 
     try {
-        const { projectName, projectDescription } = req.body
+        const { projectName, projectDescription, materials } = req.body
 
         const querySearch = "SELECT * FROM projects WHERE project_name = ?"
         const [ project ] =  await connection.promise().query({sql: querySearch, values: [projectName]})
@@ -23,6 +23,59 @@ export const createProject = async (req, res) => {
 
         const queryInsert = "INSERT INTO projects (project_name, project_description, create_date, project_state_fk) VALUES (?, ?, NOW(), ?)"
         const [ result ] = await connection.promise().query({sql: queryInsert, values: [projectName, projectDescription, 1]})
+
+        // validate if the materials quantity is valid
+        if (materials != null) {
+            const querySearch = `
+                SELECT
+                    pm.material_fk,
+                    m.material_name,
+                    m.quantity AS material_quantity,
+                    SUM(pm.quantity) AS total_quantity
+                FROM
+                    project_materials pm
+                JOIN
+                    materials m ON pm.material_fk = m.id_material
+                WHERE
+                    pm.material_fk = ?
+                GROUP BY
+                    pm.material_fk, m.material_name, m.quantity;
+            `
+
+            const queryInsertMaterials = `
+                INSERT INTO project_materials 
+                (quantity, project_fk, material_fk)
+                VALUES 
+                (?, ?, ?)
+            `
+
+            let formattedMaterialsSum = []
+
+            for (const material of materials) {
+                const [ results ] = await connection.promise().query(querySearch, [parseInt(material.id)])
+
+                let formatedObj = {
+                    id: parseInt(material.id),
+                    material_name: results.length > 0 ? results[0].material_name : null,
+                    material_quantity: results.length > 0 ? results[0].material_quantity : null,
+                    total_used: results.length > 0 ? results[0].total_quantity : 0,
+                    to_add: material.quantity
+                }
+
+                if (( formatedObj.total_used + formatedObj.to_add ) >  formatedObj.material_quantity) {
+                    return res.status(400).json({
+                        error: "material limit exceeded"
+                    })
+                }
+                
+                // add the results to the arr
+                formattedMaterialsSum.push(formatedObj)
+                const insertedId = result.insertId
+                const [ setMaterial ] = await connection.promise().query(queryInsertMaterials, [formatedObj.to_add, insertedId, formatedObj.id])
+            }
+        }
+
+
 
         return res.json({
             message: "team added successfully",
