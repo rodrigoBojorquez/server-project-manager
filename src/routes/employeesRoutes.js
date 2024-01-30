@@ -7,7 +7,6 @@ const employeesRouter = express.Router()
 // VALIDATIONS HERE
 
 
-
 // ROUTES HERE
 
 employeesRouter.post('/employees',getEmployees);

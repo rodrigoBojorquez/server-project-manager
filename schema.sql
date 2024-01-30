@@ -22,6 +22,12 @@ CREATE TABLE project_states(
     state_name VARCHAR(255) NOT NULL
 );
 
+INSERT INTO project_states (state_name) VALUES
+("en curso"),
+("terminado"),
+("cancelado"),
+("en pausa");
+
 CREATE TABLE projects(
 	id_project INT PRIMARY KEY AUTO_INCREMENT,
     project_name VARCHAR(255) NOT NULL,
@@ -38,7 +44,7 @@ CREATE TABLE teams(
 	id_team INT PRIMARY KEY AUTO_INCREMENT,
 	team_name VARCHAR(255) NOT NULL,
     
-    project_fk INT NOT NULL,
+    project_fk INT,
     FOREIGN KEY (project_fk) REFERENCES projects(id_project)
 );
 
@@ -46,7 +52,7 @@ CREATE INDEX idx_team_name ON teams(team_name);
 
 CREATE TABLE materials(
 	id_material INT PRIMARY KEY AUTO_INCREMENT,
-    material_name VARCHAR(255) NOT NULL,
+    material_name VARCHAR(255) NOT NULL UNIQUE,
     create_date DATETIME NOT NULL,
 	update_date DATETIME,
     quantity FLOAT,
@@ -59,7 +65,7 @@ CREATE TABLE users(
 	id_user INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255),
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     speciality VARCHAR(255),
     workload VARCHAR(255),
     is_activate TINYINT NOT NULL,

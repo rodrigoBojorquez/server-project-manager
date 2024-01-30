@@ -1,6 +1,6 @@
 import express from "express"
-import { body, query } from "express-validator"
-import { activateUser, createUser } from "../controllers/users.js"
+import { body, query, param } from "express-validator"
+import { activateUser, createUser, deleteUser } from "../controllers/users.js"
 
 const userRouter = express.Router()
 
@@ -17,9 +17,14 @@ const activateUserChain = [
     body("password").trim().isString().isLength({min: 8, max: 255}).withMessage("the password must be greater than 8 and lower than 255")
 ]
 
+const deleteUserChain = [
+    param("id").isNumeric({no_symbols: true}).withMessage("invalid id")
+]
+
 // ROUTES HERE
-// userRouter.post("/user", createUserChain, createUser)
-userRouter.post("/user", createUser)
 userRouter.put("/user/activate", activateUserChain, activateUser)
+userRouter.post("/user", createUserChain, createUser)
+userRouter.put("/public/user/activate", activateUserChain, activateUser)
+userRouter.delete("/user/:id", deleteUserChain, deleteUser)
 
 export default userRouter
