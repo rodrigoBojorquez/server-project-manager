@@ -75,8 +75,6 @@ export const createProject = async (req, res) => {
             }
         }
 
-
-
         return res.json({
             message: "team added successfully",
             data: result
@@ -104,24 +102,35 @@ export const getProjects = async (req, res) => {
 
         if (search != null) {
             const querySearch = `
-                SELECT 
-                    projects.id_project, 
-                    projects.project_name, 
-                    project_states.state_name, 
-                    projects.create_date,
-                    users.id_user,
-                    users.username,
-                    users.email
-                FROM 
-                    projects 
-                    INNER JOIN project_states ON projects.project_state_fk = project_states.id_project_state
-                    LEFT JOIN users ON projects.id_project = users.team_fk
-                        AND users.rol_fk = 2
-                WHERE 
-                    project_name LIKE ? 
-                ORDER BY 
-                    projects.id_project DESC 
-                LIMIT 10 OFFSET ?
+            SELECT 
+                projects.id_project, 
+                projects.project_name, 
+                project_states.state_name, 
+                projects.create_date,
+                users.id_user,
+                users.username,
+                users.email,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id_project_material', project_materials.id_project_material,
+                            'quantity', project_materials.quantity,
+                            'material_name', materials.material_name
+                        )
+                    )
+                    FROM project_materials
+                    INNER JOIN materials ON project_materials.material_fk = materials.id_material
+                    WHERE project_materials.project_fk = projects.id_project
+                ) AS assigned_materials
+            FROM 
+                projects 
+                INNER JOIN project_states ON projects.project_state_fk = project_states.id_project_state
+                LEFT JOIN users ON projects.id_project = users.team_fk AND users.rol_fk = 2
+            WHERE 
+                project_name LIKE ? 
+            ORDER BY 
+                projects.id_project DESC 
+            LIMIT 10 OFFSET ?
             `
             const searchTerm = `%${search}%`
             const [ results ] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15])
@@ -140,20 +149,31 @@ export const getProjects = async (req, res) => {
         else {
             // search the projects 15 by 15
             const queryPage = `
-                SELECT 
-                    projects.id_project, 
-                    projects.project_name, 
-                    project_states.state_name, 
-                    projects.create_date,
-                    users.id_user,
-                    users.username,
-                    users.email
-                FROM 
-                    projects 
-                    INNER JOIN project_states ON projects.project_state_fk = project_states.id_project_state 
-                    LEFT JOIN users ON projects.id_project = users.team_fk
-                        AND users.rol_fk = 2
-                LIMIT 15 OFFSET ?`
+            SELECT 
+                projects.id_project, 
+                projects.project_name, 
+                project_states.state_name, 
+                projects.create_date,
+                users.id_user AS id_leader,
+                users.username AS leader_username,
+                users.email AS leader_email,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id_project_material', project_materials.id_project_material,
+                            'quantity', project_materials.quantity,
+                            'material_name', materials.material_name
+                        )
+                    )
+                    FROM project_materials
+                    INNER JOIN materials ON project_materials.material_fk = materials.id_material
+                    WHERE project_materials.project_fk = projects.id_project
+                ) AS assigned_materials
+            FROM 
+                projects 
+                INNER JOIN project_states ON projects.project_state_fk = project_states.id_project_state
+                LEFT JOIN users ON projects.id_project = users.team_fk AND users.rol_fk = 2
+            LIMIT 10 OFFSET ?`
             const [ results ] = await connection.promise().query(queryPage, [(page - 1) * 15])
 
             if (results.length == 0) {
