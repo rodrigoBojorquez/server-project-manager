@@ -177,11 +177,67 @@ export const getTeams = async (req, res) => {
 
 
 export const updateTeam = async (req, res) => {
-    const errors = validationResult(req)
+    try {
+        const errors = validationResult(req)
 
-    if(!errors.isEmpty()) {
-        return res.status(400).json({
-            error: errors.array()
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: errors.array()
+            })
+        }
+
+        const teamId = req.params.id;
+
+        if (!teamId || !Number.isInteger(parseInt(teamId))) {
+            return res.status(400).json({
+                error: "Invalid team ID"
+            });
+        }
+
+        // Obtener los datos proporcionados por el usuario
+        const { teamName, projectId, leaderId, members } = req.body;
+
+        // Construir la consulta de actualización dinámicamente
+        const updateFields = [];
+        const updateValues = [];
+
+        if (teamName) {
+            updateFields.push("team_name = ?");
+            updateValues.push(teamName);
+        }
+
+        if (projectId) {
+            updateFields.push("project_fk = ?");
+            updateValues.push(projectId);
+        }
+
+        if (leaderId) {
+            updateFields.push("leader_id = ?");
+            updateValues.push(leaderId);
+        }
+
+        // Puedes agregar más campos según sea necesario
+
+        // Comprobar si se proporciona al menos un campo para la actualización
+        if (updateFields.length === 0) {
+            return res.status(400).json({
+                error: "At least one field is required for update"
+            });
+        }
+
+        // Construir y ejecutar la consulta de actualización
+        const queryUpdateTeam = `UPDATE teams SET ${updateFields.join(', ')} WHERE id_team = ?`;
+        const values = [...updateValues, teamId];
+
+        const [ respUpdate ] = await connection.promise().query(queryUpdateTeam, values);
+
+        return res.json({
+            message: "Team updated successfully",
+            data: respUpdate
+        });
+    } catch (err) {
+        return res.status(500).json({
+            error: err.message
         })
     }
 }
