@@ -11,4 +11,5 @@ const connection = mysql.createConnection({
     port: process.env.SQLPORT,
 })
 
+
 export default connection

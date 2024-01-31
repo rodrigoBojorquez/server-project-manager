@@ -1,6 +1,6 @@
 import express from "express"
-import { createTeam } from "../controllers/teams.js"
-import { body } from "express-validator"
+import { createTeam, deleteTeam, getTeams, updateTeam } from "../controllers/teams.js"
+import { body, param, query } from "express-validator"
 
 const teamRouter = express.Router()
 
@@ -13,7 +13,24 @@ const createTeamChain = [
     body('members.*.id_user').isNumeric({ no_symbols: true }).withMessage('Invalid member id'),
 ]
 
+const getTeamsChain = [
+    query("page").isInt({min: 1}).withMessage("invalid page"),
+    query("search").trim().isString().isLength({min:3, max:255}).optional().withMessage("minimun 3 chars to search")  
+]
+
+const updateTeamChain = [
+
+]
+
+const deleteTeamChain = [
+
+]
+
 // ROUTES HERE
 teamRouter.post("/team", createTeamChain, createTeam)
+teamRouter.get("/team", getTeamsChain, getTeams)
+teamRouter.put("/team/:id", updateTeamChain, updateTeam)
+teamRouter.delete("/team/:id", deleteTeamChain, deleteTeam)
+
 
 export default teamRouter

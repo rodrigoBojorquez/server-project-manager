@@ -84,15 +84,115 @@ export const createTeam = async (req, res) => {
 
 
 export const getTeams = async (req, res) => {
+    const errors = validationResult(req)
 
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    }
+
+    try {
+        const { page, search } = req.query
+
+        if (search == null) {
+            const querySearch = `
+            SELECT
+                teams.id_team,
+                teams.team_name,
+                (
+                    SELECT JSON_OBJECT(
+                        "id_project", projects.id_project,
+                        "project_name", projects.project_name,
+                        "num_members", COUNT(users.id_user)
+                    )
+                ) AS project_info
+            FROM
+                teams
+            INNER JOIN projects ON teams.project_fk = projects.id_project
+            LEFT JOIN users ON teams.id_team = users.team_fk
+            GROUP BY
+                teams.id_team, projects.id_project
+            LIMIT 15 OFFSET ?
+        `
+
+            const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 15])
+
+            if (results.length == 0) {
+                return res.json({
+                    message: "there's no projects found"
+                })
+            }
+
+            return res.json({
+                message: "successful request",
+                data: results
+            })
+        }
+        else {
+            const querySearch = `
+            SELECT
+                teams.id_team,
+                teams.team_name,
+                (
+                    SELECT JSON_OBJECT(
+                        "id_project", projects.id_project,
+                        "project_name", projects.project_name,
+                        "num_members", COUNT(users.id_user)
+                    )
+                    FROM teams
+                    INNER JOIN projects ON teams.project_fk = projects.id_project
+                    LEFT JOIN users ON teams.id_team = users.team_fk
+                    WHERE teams.id_team = teams.id_team
+                    GROUP BY projects.id_project
+                ) AS project_info
+            FROM
+                teams
+            WHERE
+                team_name LIKE ?
+            LIMIT 15 OFFSET ?
+        `
+
+            const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 15, search])
+
+            if (results.length == 0) {
+                return res.json({
+                    message: "there's no teams found"
+                })
+            }
+
+            return res.json({
+                message: "successful request",
+                data: results
+            })
+        }
+        
+    }
+    catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
+    }
 }
 
 
 export const updateTeam = async (req, res) => {
+    const errors = validationResult(req)
 
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    }
 }
 
 
 export const deleteTeam = async (req, res) => {
-    
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+        return res.status(400).json({
+            error: errors.array()
+        })
+    } 
 }

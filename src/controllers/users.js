@@ -46,7 +46,7 @@ export const createUser  = async (req, res) =>  {
 
         // INSERT USER
         const queryInsert = "INSERT INTO users (username, email, speciality, rol_fk, activation_token, is_activate) VALUES (?, ?, ?, ?, ?, ?);"
-        const [ response ] = await connection.promise().query({sql: queryInsert, values: [username, email, speciality, idRol, activationToken, 0]})
+        const [ response ] = await connection.promise().query({sql: queryInsert, values: [username, email, speciality, rol_fk, activationToken, 0]})
 
         // SEND EMAIL
         const transporter = nodemailer.createTransport({
@@ -210,3 +210,50 @@ const hashPass = (rawPass) => {
         })
     })
 } 
+
+// TODO: PUT USERS
+
+export const updateUsers = async (req, res) => {
+    const { rol } = req.query;
+    const { id_user, email, workload, isActivate, username } = req.body;
+
+    try {
+        // Verificar si el rol proporcionado es válido
+        const querySearchRoles = "SELECT id_rol, title FROM rols;";
+        const [roles] = await connection.promise().query(querySearchRoles);
+
+        const rolesArr = roles.map(obj => obj.title);
+        if (!rolesArr.includes(rol)) {
+            return res.status(400).json({ error: 'Invalid user role' });
+        }
+
+        // Obtener el ID del nuevo rol
+        const newRoleId = roles.find(obj => obj.title === rol).id_rol;
+
+        
+    // Construir la consulta de actualización y parámetros
+    const updateFields = [
+        ...(email !== undefined ? ['email = ?'] : []),
+        ...(workload !== undefined ? ['workload = ?'] : []),
+        ...(isActivate !== undefined ? ['is_activate = ?'] : []),
+        ...(username !== undefined ? ['username = ?'] : []),
+        'rol_fk = ?'
+      ];
+      const updateParams = [
+        ...(email !== undefined ? [email] : []),
+        ...(workload !== undefined ? [workload] : []),
+        ...(isActivate !== undefined ? [isActivate] : []),
+        ...(username !== undefined ? [username] : []),
+        newRoleId,
+        id_user
+      ];
+  
+      const queryUpdateUser = `UPDATE users SET ${updateFields.join(', ')} WHERE id_user = ?`;
+      const [updated] = await connection.promise().query(queryUpdateUser, updateParams);
+  
+      return res.status(200).json({ message: `User updated successfully. Rows affected: ${updated.affectedRows}` });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };

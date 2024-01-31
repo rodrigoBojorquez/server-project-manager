@@ -1,6 +1,8 @@
 import connection from "../database.js"
 import { validationResult } from "express-validator"
 
+
+// * Create project
 export const createProject = async (req, res) => {
     const errors = validationResult(req)
 
@@ -87,7 +89,7 @@ export const createProject = async (req, res) => {
     }
 }
 
-
+// * Get project
 export const getProjects = async (req, res) => {
     const errors = validationResult(req)
 
@@ -195,6 +197,7 @@ export const getProjects = async (req, res) => {
     }
 }
 
+// TODO: Terminar dos enpoints
 
 export const updateProject = async (req, res) => {
     const errors = validationResult(req)
@@ -204,11 +207,27 @@ export const updateProject = async (req, res) => {
             error: errors.array()
         })
     }
+    const {id_project,project_name, project_description, project_state_fk} = req.body;
 
     try {
-        const { id } = req.params
-        const { projectName, projectDescription, materials } = req.body
 
+        const updateFields = [
+            ...(project_name !== undefined ? ['project_name = ?'] : []),
+            ...(project_description !== undefined ? ['project_description = ?'] : []),
+            ...(project_state_fk !== undefined ? ['project_state_fk = ?'] : []),
+        ];
+        const updateParams = [
+            ...(project_name !== undefined ? [project_name]: []),
+            ...(project_description !== undefined ? [project_description]: []),
+            ...(project_state_fk !== undefined ? [project_state_fk]: []),
+            id_project
+        ];
+
+        const queryUpdateProject = `UPDATE projects SET ${updateFields.join(', ')} WHERE id_project = ?`;
+        const [updatedProject] = await connection.promise().query(queryUpdateProject, updateParams);
+        
+        
+        return res.status(200).json({message: `Project updated successfully. Rows affected ${updatedProject.affectedRows}`});
         
     }
     catch (err) {
@@ -227,13 +246,16 @@ export const deleteProject = async (req, res) => {
             error: errors.array()
         })
     }
+    const { id_project } = req.body;
 
-    try {
+try {
+    const queryDelete = 'DELETE FROM projects WHERE id_project = ?';
+    const [deleted] = await connection.promise().query(queryDelete, [id_project]);
 
-    }
-    catch (err) {
-        return res.status(500).json({
-            error: err.message
-        })
-    }
+    return res.status(200).json({ message: `Project deleted successfully. Rows affected: ${deleted.affectedRows}` });
+} catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+}
+
 }
