@@ -187,7 +187,7 @@ export const updateProject = async (req, res) => {
             error: errors.array()
         })
     }
-    const {id_project,project_name, project_description, project_state_fk} = req.body;
+    const {id_project,project_name, project_description, project_state_fk, materials} = req.body;
 
     try {
 
@@ -195,11 +195,13 @@ export const updateProject = async (req, res) => {
             ...(project_name !== undefined ? ['project_name = ?'] : []),
             ...(project_description !== undefined ? ['project_description = ?'] : []),
             ...(project_state_fk !== undefined ? ['project_state_fk = ?'] : []),
+            ...(materials !== undefined ? ['materials = ?'] : []),
         ];
         const updateParams = [
             ...(project_name !== undefined ? [project_name]: []),
             ...(project_description !== undefined ? [project_description]: []),
             ...(project_state_fk !== undefined ? [project_state_fk]: []),
+            ...(materials !== undefined ? [materials]: []),
             id_project
         ];
 
