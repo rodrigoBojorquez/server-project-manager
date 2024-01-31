@@ -203,65 +203,99 @@ export const getProjects = async (req, res) => {
 
 // TODO: Terminar dos enpoints
 
-export const updateProject = async (req, res) => {
-    const errors = validationResult(req)
 
-    if(!errors.isEmpty()) {
+export const updateProject = async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
-        })
+        });
     }
-    const {id_project,project_name, project_description, project_state_fk, materials} = req.body;
+
+    const { id_project, project_name, project_description, project_state_fk, materials } = req.body;
 
     try {
+        const updateFields = [];
+        const updateParams = [];
 
-        const updateFields = [
-            ...(project_name !== undefined ? ['project_name = ?'] : []),
-            ...(project_description !== undefined ? ['project_description = ?'] : []),
-            ...(project_state_fk !== undefined ? ['project_state_fk = ?'] : []),
-            ...(materials !== undefined ? ['materials = ?'] : []),
-        ];
-        const updateParams = [
-            ...(project_name !== undefined ? [project_name]: []),
-            ...(project_description !== undefined ? [project_description]: []),
-            ...(project_state_fk !== undefined ? [project_state_fk]: []),
-            ...(materials !== undefined ? [materials]: []),
-            id_project
-        ];
+        if (project_name !== undefined) {
+            updateFields.push('project_name = ?');
+            updateParams.push(project_name);
+        }
 
+        if (project_description !== undefined) {
+            updateFields.push('project_description = ?');
+            updateParams.push(project_description);
+        }
+
+        if (project_state_fk !== undefined) {
+            updateFields.push('project_state_fk = ?');
+            updateParams.push(project_state_fk);
+        }
+
+        // Actualizar la tabla 'projects'
         const queryUpdateProject = `UPDATE projects SET ${updateFields.join(', ')} WHERE id_project = ?`;
-        const [updatedProject] = await connection.promise().query(queryUpdateProject, updateParams);
-        
-        
-        return res.status(200).json({message: `Project updated successfully. Rows affected ${updatedProject.affectedRows}`});
-        
-    }
-    catch (err) {
+        const [updatedProject] = await connection.promise().query(queryUpdateProject, [...updateParams, id_project]);
+
+        // Actualizar la tabla 'project_materials'
+        if (materials && materials.length > 0) {
+            const updateMaterialsQueries = materials.map(material => ({
+                query: 'UPDATE project_materials SET quantity = ? WHERE project_fk = ? AND material_fk = ?',
+                values: [material.quantity, id_project, material.id_material]
+            }));
+
+            for (const updateQuery of updateMaterialsQueries) {
+                await connection.promise().query(updateQuery.query, updateQuery.values);
+            }
+        }
+
+        return res.status(200).json({
+            message: `Project updated successfully. Rows affected: ${updatedProject.affectedRows}`
+        });
+
+    } catch (err) {
         return res.status(500).json({
             error: err.message
-        })
+        });
     }
-}
+};
+
 
 
 export const deleteProject = async (req, res) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
 
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
-        })
+        });
     }
-    const { id_project } = req.body;
 
-try {
-    const queryDelete = 'DELETE FROM projects WHERE id_project = ?';
-    const [deleted] = await connection.promise().query(queryDelete, [id_project]);
+    const projectId = req.params.id; // Obtener el id del proyecto de los parámetros de la URL
 
-    return res.status(200).json({ message: `Project deleted successfully. Rows affected: ${deleted.affectedRows}` });
-} catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-}
+    try {
+        // Utilizar la función de transacción para asegurar la consistencia de la base de datos
+        await connection.promise().beginTransaction();
 
-}
+        // Eliminar filas en la tabla secundaria 'project_materials'
+        const queryDeletePM = 'DELETE FROM project_materials WHERE project_fk = ?';
+        const [deletedPM] = await connection.promise().query(queryDeletePM, [projectId]);
+
+        // Eliminar la fila en la tabla principal 'projects'
+        const queryDelete = 'DELETE FROM projects WHERE id_project = ?';
+        const [deleted] = await connection.promise().query(queryDelete, [projectId]);
+
+        // Commit de la transacción si todo se realiza correctamente
+        await connection.promise().commit();
+
+        return res.status(200).json({
+            message: `Project deleted successfully. Rows affected (project_materials): ${deletedPM.affectedRows}\n Rows affected (projects): ${deleted.affectedRows}`
+        });
+    } catch (error) {
+        // Rollback de la transacción en caso de error
+        await connection.promise().rollback();
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
