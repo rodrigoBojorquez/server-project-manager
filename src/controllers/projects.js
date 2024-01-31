@@ -206,6 +206,9 @@ export const updateProject = async (req, res) => {
     }
 
     try {
+        const { id } = req.params
+        const { projectName, projectDescription, materials } = req.body
+
         
     }
     catch (err) {
