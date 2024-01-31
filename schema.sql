@@ -92,10 +92,4 @@ CREATE INDEX idx_email ON users(email);
 
 
 
-INSERT INTO projects (project_name, project_description, project_state_fk, create_date) 
-VALUES (
-    "Prueba 1",
-    "dkodffjijddsoifjdsiofdjfsdjiofdijofiod",
-    1,
-    '2024-01-30 12:34:56'
-);
+
