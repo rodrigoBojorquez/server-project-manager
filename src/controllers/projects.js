@@ -264,23 +264,38 @@ export const updateProject = async (req, res) => {
 
 
 export const deleteProject = async (req, res) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
 
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
-        })
+        });
     }
-    const { id_project } = req.body;
 
-try {
-    const queryDelete = 'DELETE FROM projects WHERE id_project = ?';
-    const [deleted] = await connection.promise().query(queryDelete, [id_project]);
+    const projectId = req.params.id; // Obtener el id del proyecto de los parámetros de la URL
 
-    return res.status(200).json({ message: `Project deleted successfully. Rows affected: ${deleted.affectedRows}` });
-} catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-}
+    try {
+        // Utilizar la función de transacción para asegurar la consistencia de la base de datos
+        await connection.promise().beginTransaction();
 
-}
+        // Eliminar filas en la tabla secundaria 'project_materials'
+        const queryDeletePM = 'DELETE FROM project_materials WHERE project_fk = ?';
+        const [deletedPM] = await connection.promise().query(queryDeletePM, [projectId]);
+
+        // Eliminar la fila en la tabla principal 'projects'
+        const queryDelete = 'DELETE FROM projects WHERE id_project = ?';
+        const [deleted] = await connection.promise().query(queryDelete, [projectId]);
+
+        // Commit de la transacción si todo se realiza correctamente
+        await connection.promise().commit();
+
+        return res.status(200).json({
+            message: `Project deleted successfully. Rows affected (project_materials): ${deletedPM.affectedRows}\n Rows affected (projects): ${deleted.affectedRows}`
+        });
+    } catch (error) {
+        // Rollback de la transacción en caso de error
+        await connection.promise().rollback();
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
