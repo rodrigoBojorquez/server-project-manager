@@ -29,19 +29,20 @@ export const createProject = async (req, res) => {
         // validate if the materials quantity is valid
         if (materials != null) {
             const querySearch = `
-                SELECT
-                    pm.material_fk,
-                    m.material_name,
-                    m.quantity AS material_quantity,
-                    SUM(pm.quantity) AS total_quantity
-                FROM
-                    project_materials pm
-                JOIN
-                    materials m ON pm.material_fk = m.id_material
-                WHERE
-                    pm.material_fk = ?
-                GROUP BY
-                    pm.material_fk, m.material_name, m.quantity;
+            SELECT
+                m.id_material,
+                m.material_name,
+                m.quantity AS available_quantity,
+                COALESCE(SUM(pm.quantity), 0) AS quantity_in_projects
+            FROM
+                materials m
+            LEFT JOIN
+                project_materials pm ON m.id_material = pm.material_fk
+                        AND pm.material_fk = ?
+            WHERE
+                m.id_material = ?
+            GROUP BY
+                m.id_material, m.material_name, m.quantity;
             `
 
             const queryInsertMaterials = `
@@ -54,19 +55,22 @@ export const createProject = async (req, res) => {
             let formattedMaterialsSum = []
 
             for (const material of materials) {
-                const [ results ] = await connection.promise().query(querySearch, [parseInt(material.id)])
+                const [ results ] = await connection.promise().query(querySearch, [parseInt(material.id), parseInt(material.id)])
 
                 let formatedObj = {
                     id: parseInt(material.id),
                     material_name: results.length > 0 ? results[0].material_name : null,
-                    material_quantity: results.length > 0 ? results[0].material_quantity : null,
-                    total_used: results.length > 0 ? results[0].total_quantity : 0,
+                    material_quantity: results.length > 0 ? results[0].available_quantity : null,
+                    total_used: results.length > 0 ? results[0].quantity_in_projects : 0,
                     to_add: material.quantity
                 }
 
                 if (( formatedObj.total_used + formatedObj.to_add ) >  formatedObj.material_quantity) {
                     return res.status(400).json({
-                        error: "material limit exceeded"
+                        error: "material limit exceeded",
+                        sum: formatedObj.total_used + formatedObj.to_add,
+                        queda: formatedObj.material_quantity,
+                        res: results
                     })
                 }
                 
