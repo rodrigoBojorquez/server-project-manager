@@ -8,29 +8,29 @@ dotenv.config()
 
 // CREATE USER ENDPOINT
 export const createUser  = async (req, res) =>  {
-    const errors = validationResult(req)
+    // const errors = validationResult(req)
 
-    if(!errors.isEmpty()) {
-        return res.status(400).json({
-            error: errors.array()
-        })
-    }
+    // if(!errors.isEmpty()) {
+    //     return res.status(400).json({
+    //         error: errors.array()
+    //     })
+    // }
 
     // FIRST VALIDATE THE ROL
-    const { rol } = req.query
+    // const { rol } = req.query
     
     try {
-        const querySearch = "SELECT id_rol, title FROM rols;"
-        const [ rols ] = await connection.promise().query({sql: querySearch})
-        const rolsArr = rols.map(obj => obj.title)
+        // const querySearch = "SELECT id_rol, title FROM rols;"
+        // const [ rols ] = await connection.promise().query({sql: querySearch})
+        // const rolsArr = rols.map(obj => obj.title)
 
-        if (!rolsArr.includes(rol)) {
-            return res.status(400).json({
-                error: "invalid user rol"
-            })
-        }
-        const rolObj = rols.find(obj => obj.title == rol)
-        const idRol = rolObj.id_rol
+        // if (!rolsArr.includes(rol)) {
+        //     return res.status(400).json({
+        //         error: "invalid user rol"
+        //     })
+        // }
+        // const rolObj = rols.find(obj => obj.title == rol)
+        // const idRol = rolObj.id_rol
 
         const { username, email, speciality,rol_fk } = req.body
 
@@ -57,25 +57,25 @@ export const createUser  = async (req, res) =>  {
             }
         })
 
-        // const mailOptions = {
-        //     from: process.env.EMAIL_USER,
-        //     to: email,
-        //     subject: "Activate project-manager account",
-        //     text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
-        // }
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Activate project-manager account",
+            text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
+        }
 
-        // transporter.sendMail(mailOptions, (err, resp) => {
-        //     if (err) {
-        //         return res.status(500).json({
-        //             error: "there was an error sending the email"
-        //         })
-        //     }
-        //     else {
-        //         return res.json({
-        //             message: resp
-        //         })
-        //     }
-        // })
+        transporter.sendMail(mailOptions, (err, resp) => {
+            if (err) {
+                return res.status(500).json({
+                    error: "there was an error sending the email"
+                })
+            }
+            else {
+                return res.json({
+                    message: resp
+                })
+            }
+        })
 
         return res.json({
             message: "user added successfully, now activate",

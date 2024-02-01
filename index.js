@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import morgan from "morgan"
+import cookieParser from "cookie-parser"
 import swaggerUi from "swagger-ui-express"
 import {swaggerSpec} from "./swaggerConfig.js"
 
@@ -26,10 +27,12 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something got wrong')
 })
 
+app.use(cookieParser())
+
 app.use("/project-manager", employeesRouter, userRouter, teamRouter, projectRouter, materialsRouter,authRoutes)
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-
+export const tokenSecret = 'your-256-bit-secret';
 app.listen(8000, () => {
     console.log(`Server running in port ${8000}`)
 })
