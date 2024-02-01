@@ -116,12 +116,21 @@ export const updateMaterial = async (req, res) => {
             })
         }
 
+        const queryVerify = "SELECT SUM(quantity) AS total_used FROM project_materials WHERE material_fk = ?";
+
+        const [ resultVerify ] =  await connection.promise().query(queryVerify, [id])
+
+        if (resultVerify[0].total_used > quantity) {
+            return res.status(400).json({
+                error: `the amount of this material is insufficient for the requested operation`
+            })
+        }
+
         // merge existing data with request body
         const updatedMaterial = {
             materialName: materialName || existingMaterial[0].material_name,
             quantity: quantity || existingMaterial[0].quantity,
             measure: measure || existingMaterial[0].measure
-            // Add more fields if needed
         }
 
         // Update the material in the db
@@ -162,11 +171,14 @@ export const deleteMaterial = async (req, res) => {
     
         if (material.length == 0) {
             return res.status(404).json({
-                error: "the provided id isn't valid"
+                error: "any material matched with this id"
             })
         }
 
         const idMaterial = material[0].id_material
+
+        const queryDeleteProject = "DELETE FROM project_materials WHERE material_fk = ?"
+        await connection.promise().query(queryDeleteProject, [idMaterial])
 
         const queryDelete = "DELETE FROM materials WHERE id_material = ?"
         const [ response ] = await connection.promise().query({sql: queryDelete, values: [idMaterial]})
