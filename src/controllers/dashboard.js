@@ -70,23 +70,28 @@ export const getPendingProjects = async (req, res) => {
 
 
 export const getLastMaterialsAdded = async (req, res) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
 
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
-        })
+        });
     }
 
     try {
-        const query = "SELECT * FROM materials WHERE "
-    }
-    catch (err) {
+        const query = "SELECT * FROM materials ORDER BY create_date DESC LIMIT 10";
+        const [ materials ] = await connection.promise().query(query);
+
+        return res.status(200).json({
+            message: "successfull request",
+            data: materials[0]
+        });
+    } catch (err) {
         return res.status(500).json({
             error: err.message
-        })
+        });
     }
-}
+};
 
 
 export const getCountUsersRol = async (req, res) => {
