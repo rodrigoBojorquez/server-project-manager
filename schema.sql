@@ -28,7 +28,10 @@ INSERT INTO project_states (state_name) VALUES
 ("cancelado"),
 ("en pausa");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> cd6d51ca7966c97f2cdeb80d10bca5482177487e
 CREATE INDEX idx_project_name ON projects(project_name);
 
 CREATE TABLE teams(

@@ -186,55 +186,109 @@ export const updateTeam = async (req, res) => {
             })
         }
 
-        const teamId = req.params.id;
+        const { id } = req.params
 
-        if (!teamId || !Number.isInteger(parseInt(teamId))) {
-            return res.status(400).json({
-                error: "Invalid team ID"
-            });
+        const querySearch = `
+            SELECT
+                teams.id_team,
+                teams.team_name,
+                teams.project_fk,
+                (
+                    SELECT JSON_OBJECT (
+                        "leader_id", users.id_user,
+                        "leader_username", users.username
+                    )
+                    FROM users WHERE team_fk = teams.id_team AND rol_fk = 2
+                    LIMIT 1
+                ) AS leader_info,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        users.id_user
+                    )
+                    FROM users
+                    WHERE users.team_fk = teams.id_team AND users.rol_fk = 3
+                ) AS  members_list
+            FROM teams
+            WHERE teams.id_team = ?
+        `
+        const [ oldTeam ] =  await connection.promise().query(querySearch, [id])
+
+        if (!oldTeam[0]) {
+            return res.status(404).json({
+                error:  "the team doesn't exist"
+            })
         }
 
-        // Obtener los datos proporcionados por el usuario
-        const { teamName, projectId, leaderId, members } = req.body;
+        const { teamName, projectId, leaderId, members } = req.body
 
-        // Construir la consulta de actualización dinámicamente
-        const updateFields = [];
-        const updateValues = [];
+        // return res.json({
+        //     meesage: "team updated successfully",
+        //     data: oldTeam[0]
+        // })
 
-        if (teamName) {
-            updateFields.push("team_name = ?");
-            updateValues.push(teamName);
+        const updatedTeam = {
+            teamName: teamName || oldTeam[0].team_name,
+            projectId: projectId || oldTeam[0].project_fk,
+            leaderId: leaderId || oldTeam[0].leader_info.leader_id,
+            members:  members || oldTeam[0].members_list
         }
 
-        if (projectId) {
-            updateFields.push("project_fk = ?");
-            updateValues.push(projectId);
+        if (JSON.stringify(updatedTeam.leaderId) !== JSON.stringify(oldTeam[0].leader_info.leader_id)) {
+            // validate leader
+            const queryValidateLeader = "SELECT * FROM users WHERE id_user = ?"
+            const [ resultLeader ] = await connection.promise().query(queryValidateLeader, [leaderId])
+            if (resultLeader[0] == undefined || resultLeader[0].rol_fk != 2 || resultLeader[0].team_fk != null ) {
+                return res.status(403).json({
+                    error: "invalid leader"
+                })
+            } 
+
+            // removing the old leader
+            const queryLeader = "UPDATE users SET  team_fk = ? WHERE id_user = ?"
+            await connection.promise().query(queryLeader, [null, oldTeam[0].leader_info.leader_id])
+
+            // set the new leader
+            await connection.promise().query(queryLeader, [updatedTeam.projectId,  updatedTeam.leaderId])
         }
 
-        if (leaderId) {
-            updateFields.push("leader_id = ?");
-            updateValues.push(leaderId);
+        // validate the memebers is they changed
+        if (JSON.stringify(updatedTeam.members) !== JSON.stringify(oldTeam[0].members_list)) {
+            const querySearchUsersId = "SELECT * FROM users WHERE id_user = ?"
+            for (const id of updatedTeam.members) {
+                try {
+                    const [result] = await connection.promise().query(querySearchUsersId, [id])
+                    if (result[0] == undefined || result[0].team_fk != null || result[0].rol_fk != 3) {
+                        throw new Error(`invalid user with id ${id}`)
+                    }
+            
+                } catch (err) {
+                    return res.status(403).json({
+                        error: err.message
+                    })
+                }
+            }
+
+            const queryUpdateMember = "UPDATE users SET team_fk  = ? WHERE id_user = ?"
+
+            for (const id of  oldTeam[0].members_list) {
+                // remove the old members
+                await connection.promise().query(queryUpdateMember, [null, id])
+            }
+            for (const id of  updatedTeam.members) {
+                // add the new members to the team
+                await connection.promise().query(queryUpdateMember, [updatedTeam.projectId, id])
+            }
         }
 
-        // Puedes agregar más campos según sea necesario
-
-        // Comprobar si se proporciona al menos un campo para la actualización
-        if (updateFields.length === 0) {
-            return res.status(400).json({
-                error: "At least one field is required for update"
-            });
-        }
-
-        // Construir y ejecutar la consulta de actualización
-        const queryUpdateTeam = `UPDATE teams SET ${updateFields.join(', ')} WHERE id_team = ?`;
-        const values = [...updateValues, teamId];
-
-        const [ respUpdate ] = await connection.promise().query(queryUpdateTeam, values);
+        // udpate the team fields
+        const queryUpdateTeam = "UPDATE teams SET team_name = ?, project_fk = ? WHERE id_team = ?"
+        const [ response ] =  await connection.promise().execute(queryUpdateTeam, [updatedTeam.teamName, updatedTeam.projectId, id])
 
         return res.json({
-            message: "Team updated successfully",
-            data: respUpdate
-        });
+            message:  'the team was successfully modified',
+            data: response
+        })
+
     } catch (err) {
         return res.status(500).json({
             error: err.message
@@ -249,6 +303,35 @@ export const deleteTeam = async (req, res) => {
     if(!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
+        })
+    }
+
+    try {
+        const { id } = req.params
+
+        // validate team
+        const querySearch = "SELECT * FROM  teams WHERE id_team = ?"
+        const [ response ] =  await connection.promise().query(querySearch ,[id] )
+        
+        if (!response[0]){
+            return res.status(404).json({
+                error: `The team with the ID ${id}, does not exist`
+            })
+        }
+
+        const queryDeleteFk = "UPDATE users SET team_fk = NULL WHERE  team_fk = ?"
+        const queryDeleteTeam = "DELETE FROM teams WHERE id_team = ?"
+
+        await connection.promise().query(queryDeleteFk, [id])
+        await connection.promise().query(queryDeleteTeam, [id])
+
+        return res.json({
+            message: "team  deleted successfuly"
+        })
+    }   
+    catch (err) {
+        return res.status(500).json({
+            error: err.message
         })
     } 
 }
