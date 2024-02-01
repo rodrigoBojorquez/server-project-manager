@@ -11,6 +11,7 @@ import teamRouter from "./src/routes/teamsRoutes.js"
 import projectRouter from "./src/routes/projectsRoutes.js"
 import materialsRouter from "./src/routes/materialsRoutes.js"
 import authRoutes from "./src/routes/authRoutes.js"
+import dashboardRouter from "./src/routes/dashboardRoutes.js"
 
 const app = express()
 
@@ -26,7 +27,7 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something got wrong')
 })
 
-app.use("/project-manager", employeesRouter, userRouter, teamRouter, projectRouter, materialsRouter,authRoutes)
+app.use("/project-manager", employeesRouter, userRouter, teamRouter, projectRouter, materialsRouter,authRoutes, dashboardRouter)
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
