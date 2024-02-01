@@ -304,5 +304,34 @@ export const deleteTeam = async (req, res) => {
         return res.status(400).json({
             error: errors.array()
         })
+    }
+
+    try {
+        const { id } = req.params
+
+        // validate team
+        const querySearch = "SELECT * FROM  teams WHERE id_team = ?"
+        const [ response ] =  await connection.promise().query(querySearch ,[id] )
+        
+        if (!response[0]){
+            return res.status(404).json({
+                error: `The team with the ID ${id}, does not exist`
+            })
+        }
+
+        const queryDeleteFk = "UPDATE users SET team_fk = NULL WHERE  team_fk = ?"
+        const queryDeleteTeam = "DELETE FROM teams WHERE id_team = ?"
+
+        await connection.promise().query(queryDeleteFk, [id])
+        await connection.promise().query(queryDeleteTeam, [id])
+
+        return res.json({
+            message: "team  deleted successfuly"
+        })
+    }   
+    catch (err) {
+        return res.status(500).json({
+            error: err.message
+        })
     } 
 }
