@@ -28,62 +28,6 @@ INSERT INTO project_states (state_name) VALUES
 ("cancelado"),
 ("en pausa");
 
-export const updateProject = async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json({
-            error: errors.array()
-        });
-    }
-
-    const { id_project, project_name, project_description, project_state_fk, materials } = req.body;
-
-    try {
-        const updateFields = [];
-        const updateParams = [];
-
-        if (project_name !== undefined) {
-            updateFields.push('project_name = ?');
-            updateParams.push(project_name);
-        }
-
-        if (project_description !== undefined) {
-            updateFields.push('project_description = ?');
-            updateParams.push(project_description);
-        }
-
-        if (project_state_fk !== undefined) {
-            updateFields.push('project_state_fk = ?');
-            updateParams.push(project_state_fk);
-        }
-
-        // Actualizar la tabla 'projects'
-        const queryUpdateProject = `UPDATE projects SET ${updateFields.join(', ')} WHERE id_project = ?`;
-        const [updatedProject] = await connection.promise().query(queryUpdateProject, [...updateParams, id_project]);
-
-        // Actualizar la tabla 'project_materials'
-        if (materials && materials.length > 0) {
-            const updateMaterialsQueries = materials.map(material => ({
-                query: 'UPDATE project_materials SET quantity = ? WHERE project_fk = ? AND material_fk = ?',
-                values: [material.quantity, id_project, material.id_material]
-            }));
-
-            for (const updateQuery of updateMaterialsQueries) {
-                await connection.promise().query(updateQuery.query, updateQuery.values);
-            }
-        }
-
-        return res.status(200).json({
-            message: `Project updated successfully. Rows affected: ${updatedProject.affectedRows}`
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            error: err.message
-        });
-    }
-};
 
 CREATE INDEX idx_project_name ON projects(project_name);
 

@@ -32,7 +32,7 @@ export const createUser  = async (req, res) =>  {
         const rolObj = rols.find(obj => obj.title == rol)
         const idRol = rolObj.id_rol
 
-        const { username, email, speciality } = req.body
+        const { username, email, speciality,rol_fk } = req.body
 
         const isEmailUsed = await validateEmail(email)
         if (isEmailUsed) {
@@ -57,25 +57,25 @@ export const createUser  = async (req, res) =>  {
             }
         })
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Activate project-manager account",
-            text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
-        }
+        // const mailOptions = {
+        //     from: process.env.EMAIL_USER,
+        //     to: email,
+        //     subject: "Activate project-manager account",
+        //     text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
+        // }
 
-        transporter.sendMail(mailOptions, (err, resp) => {
-            if (err) {
-                return res.status(500).json({
-                    error: "there was an error sending the email"
-                })
-            }
-            else {
-                return res.json({
-                    message: resp
-                })
-            }
-        })
+        // transporter.sendMail(mailOptions, (err, resp) => {
+        //     if (err) {
+        //         return res.status(500).json({
+        //             error: "there was an error sending the email"
+        //         })
+        //     }
+        //     else {
+        //         return res.json({
+        //             message: resp
+        //         })
+        //     }
+        // })
 
         return res.json({
             message: "user added successfully, now activate",
