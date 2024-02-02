@@ -143,7 +143,8 @@ export const getProjects = async (req, res) => {
 
             if (results.length == 0) {
                 return res.json({
-                    message: "there's no projects found"
+                    message: "there's no projects found",
+                    data: results
                 })
             }
 
@@ -186,7 +187,8 @@ export const getProjects = async (req, res) => {
 
             if (results.length == 0) {
                 return res.json({
-                    message: "there's no projects found"
+                    message: "there's no projects found",
+                    data: results
                 })
             }
 
@@ -227,7 +229,8 @@ export const getProjects = async (req, res) => {
 
             if (results.length == 0) {
                 return res.json({
-                    message: "there's no projects found"
+                    message: "there's no projects found",
+                    data: results
                 })
             }
 

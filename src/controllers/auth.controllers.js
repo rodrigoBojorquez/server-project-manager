@@ -39,7 +39,7 @@ export const login = async (req, res, next) => {
         username: username,
       });
   
-      res.cookie("token", token);
+      res.cookie("token", token, {secure: true});
 
       return res.status(200).json({message: "ok"})
   } catch (error) {
