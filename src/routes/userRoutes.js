@@ -28,6 +28,7 @@ userRouter.put("/user/activate",verifyToken, assignPermissions('administrator'),
 userRouter.post("/user", createUser)
 userRouter.put("/user/:id",verifyToken,assignPermissions('administrator'), updateUsers)
 userRouter.put("/public/user/activate", activateUser)
-userRouter.delete("/user/:id",verifyToken,assignPermissions('administrator') , deleteUser)
+// userRouter.delete("/user/:id",verifyToken,assignPermissions('administrator') , deleteUser)
+userRouter.delete("/user/:id" , deleteUser)
 
 export default userRouter

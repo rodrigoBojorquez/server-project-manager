@@ -11,6 +11,8 @@ const employeesRouter = express.Router()
 
 // ROUTES HERE
 
-employeesRouter.get('/employees',verifyToken,assignPermissions(['administrator','team leader','employee']),getEmployees);
+// employeesRouter.get('/employees',verifyToken,assignPermissions(['administrator','team leader','employee']),getEmployees);
+employeesRouter.get('/employees',getEmployees);
+
 
 export default employeesRouter
