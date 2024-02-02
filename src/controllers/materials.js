@@ -130,6 +130,7 @@ export const updateMaterial = async (req, res) => {
             sql: queryUpdate,
             values: [updatedMaterial.materialName, updatedMaterial.quantity, updatedMaterial.measure, id]
         })
+        console.log('Updated material:', newMaterial);
 
         return res.json({
             message: 'material updated successfully',
