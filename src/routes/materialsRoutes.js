@@ -33,7 +33,7 @@ const materialsRouter = express.Router()
 materialsRouter.post("/warehouse",verifyToken,assignPermissions(['administrator','warehouse admin']) , createMaterial)
 // materialsRouter.get("/warehouse",verifyToken,assignPermissions(['administator','team leader','warehouse admin']) , getMaterials)
 materialsRouter.get("/warehouse", getMaterials)
-materialsRouter.put("/warehouse/:id",verifyToken,assignPermissions(['administrator','warehouse admin']) , updateMaterial)
+materialsRouter.put("/warehouse/:id", updateMaterial)
 materialsRouter.delete("/warehouse/:id",verifyToken,assignPermissions(['administrator','warehouse admin']) , deleteMaterial)
 
 export default materialsRouter
