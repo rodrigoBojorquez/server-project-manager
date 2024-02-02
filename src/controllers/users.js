@@ -8,31 +8,31 @@ dotenv.config()
 
 // CREATE USER ENDPOINT
 export const createUser  = async (req, res) =>  {
-    const errors = validationResult(req)
+    // const errors = validationResult(req)
 
-    if(!errors.isEmpty()) {
-        return res.status(400).json({
-            error: errors.array()
-        })
-    }
+    // if(!errors.isEmpty()) {
+    //     return res.status(400).json({
+    //         error: errors.array()
+    //     })
+    // }
 
     // FIRST VALIDATE THE ROL
-    const { rol } = req.query
+    // const { rol } = req.query
     
     try {
-        const querySearch = "SELECT id_rol, title FROM rols;"
-        const [ rols ] = await connection.promise().query({sql: querySearch})
-        const rolsArr = rols.map(obj => obj.title)
+        // const querySearch = "SELECT id_rol, title FROM rols;"
+        // const [ rols ] = await connection.promise().query({sql: querySearch})
+        // const rolsArr = rols.map(obj => obj.title)
 
-        if (!rolsArr.includes(rol)) {
-            return res.status(400).json({
-                error: "invalid user rol"
-            })
-        }
-        const rolObj = rols.find(obj => obj.title == rol)
-        const idRol = rolObj.id_rol
+        // if (!rolsArr.includes(rol)) {
+        //     return res.status(400).json({
+        //         error: "invalid user rol"
+        //     })
+        // }
+        // const rolObj = rols.find(obj => obj.title == rol)
+        // const idRol = rolObj.id_rol
 
-        const { username, email, speciality } = req.body
+        const { username, email, speciality, rol_fk } = req.body
 
         const isEmailUsed = await validateEmail(email)
         if (isEmailUsed) {

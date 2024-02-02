@@ -41,56 +41,68 @@ export const createMaterial = async (req, res) => {
 
 
 export const getMaterials = async (req, res) => {
-    const errors = validationResult(req)
+    const errors = validationResult(req);
 
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
         return res.status(400).json({
             error: errors.array()
-        })
+        });
     }
-    
+
     try {
-        const { page, search } = req.query
+        const { page, search } = req.query;
 
         if (search != null) {
-            const querySearch = "SELECT * FROM materials  WHERE material_name LIKE ? ORDER BY id_material DESC LIMIT 10 OFFSET ?"
-            const searchTerm = `%${search}%`
-            const [ results ] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15])
+            const querySearch =
+                "SELECT m.*, " +
+                "COALESCE(m.quantity - SUM(pm.quantity), m.quantity) AS available_quantity " +
+                "FROM materials m " +
+                "LEFT JOIN project_materials pm ON m.id_material = pm.material_fk " +
+                "WHERE m.material_name LIKE ? " +
+                "GROUP BY m.id_material " +
+                "ORDER BY m.id_material DESC LIMIT 10 OFFSET ?";
+            const searchTerm = `%${search}%`;
+            const [results] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15]);
 
             if (results.length == 0) {
                 return res.json({
-                    message: "there's no materials found"
-                })
+                    message: "There's no materials found"
+                });
             }
 
             return res.json({
-                message: "successful request",
+                message: "Successful request",
                 data: results
-            })
-        }
-        else {
-            // search the warehouse 15 by 15
-            const queryPage = "SELECT * FROM materials LIMIT 15 OFFSET ?"
-            const [ results ] = await connection.promise().query(queryPage, [(page - 1) * 15])
+            });
+        } else {
+            // Search the warehouse 15 by 15
+            const queryPage =
+                "SELECT m.*, " +
+                "COALESCE(m.quantity - SUM(pm.quantity), m.quantity) AS available_quantity " +
+                "FROM materials m " +
+                "LEFT JOIN project_materials pm ON m.id_material = pm.material_fk " +
+                "GROUP BY m.id_material " +
+                "LIMIT 15 OFFSET ?";
+            const [results] = await connection.promise().query(queryPage, [(page - 1) * 15]);
 
             if (results.length == 0) {
                 return res.json({
-                    message: "there's no materials found"
-                })
+                    message: "There's no materials found"
+                });
             }
 
             return res.json({
-                message: "successful request",
+                message: "Successful request",
                 data: results
-            })
+            });
         }
-    }
-    catch (err) {
+    } catch (err) {
         return res.status(500).json({
             error: err.message
-        })
+        });
     }
-}
+};
+
 
 
 export const updateMaterial = async (req, res) => {
@@ -116,12 +128,21 @@ export const updateMaterial = async (req, res) => {
             })
         }
 
+        const queryVerify = "SELECT SUM(quantity) AS total_used FROM project_materials WHERE material_fk = ?";
+
+        const [ resultVerify ] =  await connection.promise().query(queryVerify, [id])
+
+        if (resultVerify[0].total_used > quantity) {
+            return res.status(400).json({
+                error: `the amount of this material is insufficient for the requested operation`
+            })
+        }
+
         // merge existing data with request body
         const updatedMaterial = {
             materialName: materialName || existingMaterial[0].material_name,
             quantity: quantity || existingMaterial[0].quantity,
             measure: measure || existingMaterial[0].measure
-            // Add more fields if needed
         }
 
         // Update the material in the db
@@ -163,11 +184,14 @@ export const deleteMaterial = async (req, res) => {
     
         if (material.length == 0) {
             return res.status(404).json({
-                error: "the provided id isn't valid"
+                error: "any material matched with this id"
             })
         }
 
         const idMaterial = material[0].id_material
+
+        const queryDeleteProject = "DELETE FROM project_materials WHERE material_fk = ?"
+        await connection.promise().query(queryDeleteProject, [idMaterial])
 
         const queryDelete = "DELETE FROM materials WHERE id_material = ?"
         const [ response ] = await connection.promise().query({sql: queryDelete, values: [idMaterial]})
