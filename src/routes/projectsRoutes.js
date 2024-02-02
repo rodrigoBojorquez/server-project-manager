@@ -32,10 +32,13 @@ const deleteProjectChain = [
 
 
 // ROUTES HERE
-projectRouter.post("/project",verifyToken, assignPermissions('administrator'), createProject)
+// projectRouter.post("/project",verifyToken, assignPermissions('administrator'), createProject)
+projectRouter.post("/project", createProject)
 // projectRouter.get("/projects",verifyToken,assignPermissions(['administrator','team leader']) , getProjects)
 projectRouter.get("/projects",getProjectsChain, getProjects)
 projectRouter.put("/projects/:id",verifyToken, assignPermissions('administrator'), updateProject)
-projectRouter.delete("/projects/:id",verifyToken, assignPermissions('administrator'), deleteProject)
+// projectRouter.delete("/projects/:id",verifyToken, assignPermissions('administrator'), deleteProject)
+projectRouter.delete("/projects/:id", deleteProject)
+
 
 export default projectRouter
