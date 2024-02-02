@@ -4,6 +4,7 @@ import morgan from "morgan"
 import cookieParser from "cookie-parser"
 import swaggerUi from "swagger-ui-express"
 import {swaggerSpec} from "./swaggerConfig.js"
+import jwt from "jsonwebtoken"
 
 // ROUTES HERE
 import employeesRouter from "./src/routes/employeesRoutes.js"
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 app.use(cors({
     origin: "http://localhost:5173",
+    credentials: true,
     methods: 'GET, POST, PATCH, DELETE',
     allowedHeaders: 'Content-Type'
 }))
@@ -34,6 +36,40 @@ app.use("/project-manager", employeesRouter, userRouter, teamRouter, projectRout
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 export const tokenSecret = 'your-256-bit-secret';
+
+// TOKEN VALIDATOR FOR THE FRONT
+app.post("/project-manager/token", (req, res) => {
+    const { token } = req.body
+
+    if (!token) {
+        return res.status(401).json({
+            error: "token not provided"
+        })
+    }
+
+    try {
+        const decoded = jwt.verify(token, tokenSecret)
+        const currentTimestamp = Math.floor(Date.now() / 1000)
+        if (decoded.exp < currentTimestamp) {
+            return res.json({
+                isValid: false,
+                error: "expired token"
+            })
+        }
+
+        res.json({
+            isValid: true,
+            user: decoded
+        })
+    }
+    catch (err) {
+        res.json({
+            isValid: false,
+            error: "invalid token"
+        })
+    }
+})
+
 app.listen(8000, () => {
     console.log(`Server running in port ${8000}`)
 })

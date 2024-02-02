@@ -31,7 +31,8 @@ const materialsRouter = express.Router()
 
 // ROUTES HERE
 materialsRouter.post("/warehouse",verifyToken,assignPermissions(['administrator','warehouse admin']) , createMaterial)
-materialsRouter.get("/warehouse",verifyToken,assignPermissions(['administator','team leader','warehouse admin']) , getMaterials)
+// materialsRouter.get("/warehouse",verifyToken,assignPermissions(['administator','team leader','warehouse admin']) , getMaterials)
+materialsRouter.get("/warehouse", getMaterials)
 materialsRouter.put("/warehouse/:id",verifyToken,assignPermissions(['administrator','warehouse admin']) , updateMaterial)
 materialsRouter.delete("/warehouse/:id",verifyToken,assignPermissions(['administrator','warehouse admin']) , deleteMaterial)
 

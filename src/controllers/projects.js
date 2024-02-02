@@ -104,7 +104,7 @@ export const getProjects = async (req, res) => {
     }
 
     try {
-        const { page, search } = req.query
+        const { page, search, state } = req.query
 
         if (search != null) {
             const querySearch = `
@@ -140,6 +140,49 @@ export const getProjects = async (req, res) => {
             `
             const searchTerm = `%${search}%`
             const [ results ] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15])
+
+            if (results.length == 0) {
+                return res.json({
+                    message: "there's no projects found"
+                })
+            }
+
+            return res.json({
+                message: "successful request",
+                data: results
+            })
+        }
+        else if (state != null) {
+            const querySearch = `            
+            SELECT 
+                projects.id_project, 
+                projects.project_name, 
+                project_states.state_name, 
+                projects.create_date,
+                users.id_user AS id_leader,
+                users.username AS leader_username,
+                users.email AS leader_email,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'id_project_material', project_materials.id_project_material,
+                            'quantity', project_materials.quantity,
+                            'material_name', materials.material_name
+                        )
+                    )
+                    FROM project_materials
+                    INNER JOIN materials ON project_materials.material_fk = materials.id_material
+                    WHERE project_materials.project_fk = projects.id_project
+                ) AS assigned_materials
+            FROM 
+                projects 
+                INNER JOIN project_states ON projects.project_state_fk = project_states.id_project_state
+                LEFT JOIN users ON projects.id_project = users.team_fk AND users.rol_fk = 2
+            WHERE project_state_fk = ?
+            ORDER BY create_date DESC
+            LIMIT 10 OFFSET ?` 
+            
+            const [ results ] = await connection.promise().query(querySearch, [state, (page - 1) * 15])
 
             if (results.length == 0) {
                 return res.json({

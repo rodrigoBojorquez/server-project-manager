@@ -32,7 +32,7 @@ export const createUser  = async (req, res) =>  {
         // const rolObj = rols.find(obj => obj.title == rol)
         // const idRol = rolObj.id_rol
 
-        const { username, email, speciality,rol_fk } = req.body
+        const { username, email, speciality, rol_fk } = req.body
 
         const isEmailUsed = await validateEmail(email)
         if (isEmailUsed) {

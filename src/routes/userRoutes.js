@@ -25,9 +25,9 @@ const userRouter = express.Router()
 
 // ROUTES HERE
 userRouter.put("/user/activate",verifyToken, assignPermissions('administrator'), activateUser)
-userRouter.post("/user",verifyToken, assignPermissions('administrator'), createUser)
+userRouter.post("/user", createUser)
 userRouter.put("/user/:id",verifyToken,assignPermissions('administrator'), updateUsers)
-userRouter.put("/public/user/activate",verifyToken,assignPermissions('administrator') , activateUser)
+userRouter.put("/public/user/activate", activateUser)
 userRouter.delete("/user/:id",verifyToken,assignPermissions('administrator') , deleteUser)
 
 export default userRouter
