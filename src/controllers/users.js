@@ -57,25 +57,25 @@ export const createUser  = async (req, res) =>  {
             }
         })
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Activate project-manager account",
-            text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
-        }
+        // const mailOptions = {
+        //     from: process.env.EMAIL_USER,
+        //     to: email,
+        //     subject: "Activate project-manager account",
+        //     text: `Hello ${username}, to activate your project-manager account you have to click on the following link and set your secret password: \n\n ${process.env.FRONTEND_LOCATION}/${activationToken}`
+        // }
 
-        transporter.sendMail(mailOptions, (err, resp) => {
-            if (err) {
-                return res.status(500).json({
-                    error: "there was an error sending the email"
-                })
-            }
-            else {
-                return res.json({
-                    message: resp
-                })
-            }
-        })
+        // transporter.sendMail(mailOptions, (err, resp) => {
+        //     if (err) {
+        //         return res.status(500).json({
+        //             error: "there was an error sending the email"
+        //         })
+        //     }
+        //     else {
+        //         return res.json({
+        //             message: resp
+        //         })
+        //     }
+        // })
 
         return res.json({
             message: "user added successfully, now activate",
@@ -214,21 +214,20 @@ const hashPass = (rawPass) => {
 // TODO: PUT USERS
 
 export const updateUsers = async (req, res) => {
-    const { rol } = req.query;
-    const { id_user, email, workload, isActivate, username } = req.body;
+    const { id_user, email, workload, isActivate, username,rol_fk } = req.body;
 
     try {
         // Verificar si el rol proporcionado es válido
-        const querySearchRoles = "SELECT id_rol, title FROM rols;";
-        const [roles] = await connection.promise().query(querySearchRoles);
+        // const querySearchRoles = "SELECT id_rol, title FROM rols;";
+        // const [roles] = await conection.promise().query(querySearchRoles);
 
-        const rolesArr = roles.map(obj => obj.title);
-        if (!rolesArr.includes(rol)) {
-            return res.status(400).json({ error: 'Invalid user role' });
-        }
+        // const rolesArr = roles.map(obj => obj.title);
+        // if (!rolesArr.includes(rol)) {
+        //     return res.status(400).json({ error: 'Invalid user role' });
+        // }
 
-        // Obtener el ID del nuevo rol
-        const newRoleId = roles.find(obj => obj.title === rol).id_rol;
+        // // Obtener el ID del nuevo rol
+        // const newRoleId = roles.find(obj => obj.title === rol).id_rol;
 
         
     // Construir la consulta de actualización y parámetros
@@ -237,6 +236,7 @@ export const updateUsers = async (req, res) => {
         ...(workload !== undefined ? ['workload = ?'] : []),
         ...(isActivate !== undefined ? ['is_activate = ?'] : []),
         ...(username !== undefined ? ['username = ?'] : []),
+        ...(rol_fk  !== undefined ? ['rol_fk = ?'] : []),
         'rol_fk = ?'
       ];
       const updateParams = [
@@ -244,7 +244,8 @@ export const updateUsers = async (req, res) => {
         ...(workload !== undefined ? [workload] : []),
         ...(isActivate !== undefined ? [isActivate] : []),
         ...(username !== undefined ? [username] : []),
-        newRoleId,
+        ...(rol_fk !== undefined ? [rol_fk] : []),
+        rol_fk,
         id_user
       ];
   
