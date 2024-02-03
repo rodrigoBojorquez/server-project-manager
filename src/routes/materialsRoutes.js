@@ -13,10 +13,10 @@ const materialsRouter = express.Router()
 //     body("measure").trim().isString().isLength({min: 1, max: 255}).withMessage("invalid unit of measurement")
 // ]
 
-// const getMaterialsChain = [
-//     query("page").isInt({min: 1}).withMessage("invalid page"),
-//     query("search").trim().isString().isLength({min:3, max:255}).optional().withMessage("minimun 3 chars to search")    
-// ]
+const getMaterialsChain = [
+    query("page").isInt({min: 1}).withMessage("invalid page"),
+    query("search").trim().isString().isLength({min:3, max:255}).optional().withMessage("minimun 3 chars to search")    
+]
 
 // const updateMaterialChain = [
 //     param("id").isNumeric({no_symbols: true}).withMessage("invalid id format"),
@@ -31,9 +31,8 @@ const materialsRouter = express.Router()
 
 // ROUTES HERE
 materialsRouter.post("/warehouse",verifyToken,assignPermissions(['administrator','warehouse admin']) , createMaterial)
-// materialsRouter.get("/warehouse",verifyToken,assignPermissions(['administator','team leader','warehouse admin']) , getMaterials)
-materialsRouter.get("/warehouse", getMaterials)
-materialsRouter.put("/warehouse/:id", updateMaterial)
+materialsRouter.get("/warehouse",getMaterialsChain,verifyToken,assignPermissions(['administator','team leader','warehouse admin']) , getMaterials)
+materialsRouter.put("/warehouse/:id",verifyToken,assignPermissions(['administator']), updateMaterial)
 materialsRouter.delete("/warehouse/:id",verifyToken,assignPermissions(['administrator','warehouse admin']) , deleteMaterial)
 
 export default materialsRouter
