@@ -82,8 +82,8 @@ export const getMaterials = async (req, res) => {
                 "FROM materials m " +
                 "LEFT JOIN project_materials pm ON m.id_material = pm.material_fk " +
                 "GROUP BY m.id_material " +
-                "LIMIT 15 OFFSET ?";
-            const [results] = await connection.promise().query(queryPage, [(page - 1) * 15]);
+                "LIMIT 10 OFFSET ?";
+            const [results] = await connection.promise().query(queryPage, [(page - 1) * 10]);
 
             if (results.length == 0) {
                 return res.json({

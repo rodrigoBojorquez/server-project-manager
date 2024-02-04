@@ -7,30 +7,8 @@ import nodemailer from "nodemailer"
 dotenv.config()
 
 // CREATE USER ENDPOINT
-export const createUser  = async (req, res) =>  {
-    // const errors = validationResult(req)
-
-    // if(!errors.isEmpty()) {
-    //     return res.status(400).json({
-    //         error: errors.array()
-    //     })
-    // }
-
-    // FIRST VALIDATE THE ROL
-    // const { rol } = req.query
-    
+export const createUser  = async (req, res) =>  { 
     try {
-        // const querySearch = "SELECT id_rol, title FROM rols;"
-        // const [ rols ] = await connection.promise().query({sql: querySearch})
-        // const rolsArr = rols.map(obj => obj.title)
-
-        // if (!rolsArr.includes(rol)) {
-        //     return res.status(400).json({
-        //         error: "invalid user rol"
-        //     })
-        // }
-        // const rolObj = rols.find(obj => obj.title == rol)
-        // const idRol = rolObj.id_rol
 
         const { username, email, speciality, rol_fk } = req.body
 
@@ -154,9 +132,14 @@ export const deleteUser = async (req, res) => {
         }
     
         if (user[0].rol_fk == 1) {
-            return res.status(403).json({
-                error: "cannot eliminate an administrator"
-            })
+            const queryMinIdAdmin = "SELECT * FROM users WHERE rol_fk = 1 ORDER BY id_user ASC LIMIT 1"
+            const [minIdAdmin] = await connection.promise().query(queryMinIdAdmin);
+
+            if (minIdAdmin.length > 0 && minIdAdmin[0].id_user === parseInt(id)) {
+                return res.status(403).json({
+                    error: "Cannot delete the super admin"
+                });
+            }
         }
     
         const idUser = user[0].id_user
@@ -167,14 +150,15 @@ export const deleteUser = async (req, res) => {
         return res.json({
             message: "the user has been deleted successfully",
             data: response
-        })
+        });
     }
     catch (err) {
         return res.status(500).json({
             error: err
-        })
+        });
     }
 }
+
 
 // VALIDATE EMAIL
 const validateEmail = async (email) => {
@@ -214,46 +198,31 @@ const hashPass = (rawPass) => {
 // TODO: PUT USERS
 
 export const updateUsers = async (req, res) => {
-    const { rol } = req.query;
-    const { id_user, email, workload, isActivate, username } = req.body;
-
     try {
-        // Verificar si el rol proporcionado es válido
-        const querySearchRoles = "SELECT id_rol, title FROM rols;";
-        const [roles] = await connection.promise().query(querySearchRoles);
+        const userId = req.params.id; // Assuming the user ID is passed as a route parameter
+        const { username, email, speciality, rol_fk } = req.body;
 
-        const rolesArr = roles.map(obj => obj.title);
-        if (!rolesArr.includes(rol)) {
-            return res.status(400).json({ error: 'Invalid user role' });
+        // Check if the user exists
+        const querySearch = "SELECT * FROM users WHERE id_user = ?"
+        const [verify] = await connection.promise().query(querySearch, [userId])
+
+        if (!verify[0]) {
+            return res.status(404).json({
+                error: "user not found"
+            });
         }
 
-        // Obtener el ID del nuevo rol
-        const newRoleId = roles.find(obj => obj.title === rol).id_rol;
+        // Update user information
+        const queryUpdate = "UPDATE users SET username = ?, email = ?, speciality = ?, rol_fk = ? WHERE id_user = ?;";
+        const [response] = await connection.promise().query({ sql: queryUpdate, values: [username, email, speciality, rol_fk, userId] });
 
-        
-    // Construir la consulta de actualización y parámetros
-    const updateFields = [
-        ...(email !== undefined ? ['email = ?'] : []),
-        ...(workload !== undefined ? ['workload = ?'] : []),
-        ...(isActivate !== undefined ? ['is_activate = ?'] : []),
-        ...(username !== undefined ? ['username = ?'] : []),
-        'rol_fk = ?'
-      ];
-      const updateParams = [
-        ...(email !== undefined ? [email] : []),
-        ...(workload !== undefined ? [workload] : []),
-        ...(isActivate !== undefined ? [isActivate] : []),
-        ...(username !== undefined ? [username] : []),
-        newRoleId,
-        id_user
-      ];
-  
-      const queryUpdateUser = `UPDATE users SET ${updateFields.join(', ')} WHERE id_user = ?`;
-      const [updated] = await connection.promise().query(queryUpdateUser, updateParams);
-  
-      return res.status(200).json({ message: `User updated successfully. Rows affected: ${updated.affectedRows}` });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Internal Server Error' });
+        return res.json({
+            message: "user updated successfully",
+            data: response
+        });
+    } catch (err) {
+        return res.status(500).json({
+            error: err.message
+        });
     }
-  };
+};

@@ -9,7 +9,7 @@ export const getEmployees = async (req, res) => {
     try {
   
       // Obtener empleados con el rol específico
-      const queryEmployees = "SELECT * FROM users;";
+      const queryEmployees = "SELECT * FROM users WHERE;";
       const [employeesSearch] = await connection.promise().query(queryEmployees);
   
       // Devolver la lista de empleados
