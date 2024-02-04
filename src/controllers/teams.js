@@ -106,17 +106,21 @@ export const getTeams = async (req, res) => {
                         "project_name", projects.project_name,
                         "num_members", COUNT(users.id_user)
                     )
-                ) AS project_info
+                    FROM teams
+                    INNER JOIN projects ON teams.project_fk = projects.id_project
+                    LEFT JOIN users ON teams.id_team = users.team_fk
+                    WHERE teams.id_team = teams.id_team
+                    GROUP BY projects.id_project
+                ) AS project_info,
+                leader_info.username AS leader_username,
+                leader_info.id_user AS leader_id
             FROM
                 teams
-            INNER JOIN projects ON teams.project_fk = projects.id_project
-            LEFT JOIN users ON teams.id_team = users.team_fk
-            GROUP BY
-                teams.id_team, projects.id_project
-            LIMIT 15 OFFSET ?
-        `
+            LEFT JOIN users AS leader_info ON teams.id_team = leader_info.team_fk AND leader_info.rol_fk = 2
+            LIMIT 10 OFFSET ?
+            `;
 
-            const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 15])
+            const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 10])
 
             if (results.length == 0) {
                 return res.json({
@@ -145,13 +149,16 @@ export const getTeams = async (req, res) => {
                     LEFT JOIN users ON teams.id_team = users.team_fk
                     WHERE teams.id_team = teams.id_team
                     GROUP BY projects.id_project
-                ) AS project_info
+                ) AS project_info,
+                leader_info.username AS leader_username,
+                leader_info.id_user AS leader_id_user
             FROM
                 teams
+            LEFT JOIN users AS leader_info ON teams.id_team = leader_info.team_fk AND leader_info.rol_fk = 2
             WHERE
                 team_name LIKE ?
             LIMIT 15 OFFSET ?
-        `
+            `;
 
             const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 15, search])
 

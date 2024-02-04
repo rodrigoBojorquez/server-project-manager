@@ -11,7 +11,7 @@ export const getEmployees = async (req, res) => {
       // Obtener empleados con el rol específico
       if (rol) {
         const queryEmployees = "SELECT * FROM users WHERE rol_fk = ? LIMIT 10 OFFSET ?;";
-        const [employeesSearch] = await connection.promise().query(queryEmployees, rol, (page - 1) * 10);
+        const [employeesSearch] = await connection.promise().query(queryEmployees, [rol, (page - 1) * 10]);
         return res.json({
           data: employeesSearch
         })
