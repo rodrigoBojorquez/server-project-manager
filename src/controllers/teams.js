@@ -274,20 +274,20 @@ export const updateTeam = async (req, res) => {
 
         // validate the memebers is they changed
         if (updatedTeam.members !== oldTeam[0].members_list) {
-            const querySearchUsersId = "SELECT * FROM users WHERE id_user = ?"
-            for (const id of updatedTeam.members) {
-                try {
-                    const [result] = await connection.promise().query(querySearchUsersId, [id])
-                    if (result[0] == undefined || result[0].team_fk != null || result[0].rol_fk != 3) {
-                        throw new Error(`invalid user with id ${id}`)
-                    }
+            // const querySearchUsersId = "SELECT * FROM users WHERE id_user = ?"
+            // for (const idMember of updatedTeam.members) {
+            //     try {
+            //         const [result] = await connection.promise().query(querySearchUsersId, [idMember])
+            //         if (result[0] == undefined || (result[0].team_fk != null || result[0].team_fk == id ) || result[0].rol_fk != 3) {
+            //             throw new Error(`invalid user with id ${idMember}`)
+            //         }
             
-                } catch (err) {
-                    return res.status(403).json({
-                        error: err.message
-                    })
-                }
-            }
+            //     } catch (err) {
+            //         return res.status(403).json({
+            //             error: err.message
+            //         })
+            //     }
+            // }
 
             const queryUpdateMember = "UPDATE users SET team_fk  = ? WHERE id_user = ?"
             if (oldTeam[0].members_list !== null) {
@@ -296,13 +296,9 @@ export const updateTeam = async (req, res) => {
                     await connection.promise().query(queryUpdateMember, [null, id])
                 }
             }
-            return res.json({
-                update: updatedTeam,
-                id_team: id
-            })
-            for (const id of  updatedTeam.members) {
+            for (const idMember of  updatedTeam.members) {
                 // add the new members to the team
-                await connection.promise().query(queryUpdateMember, [updatedTeam.projectId, parseInt(id)])
+                await connection.promise().query(queryUpdateMember, [id, parseInt(idMember)])
             }
         }
 
