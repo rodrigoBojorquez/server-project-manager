@@ -8,26 +8,21 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 
 // ROUTES HERE
-import employeesRouter from "./src/routes/employeesRoutes.js";
-import userRouter from "./src/routes/userRoutes.js";
-import teamRouter from "./src/routes/teamsRoutes.js";
-import projectRouter from "./src/routes/projectsRoutes.js";
-import materialsRouter from "./src/routes/materialsRoutes.js";
-import authRoutes from "./src/routes/authRoutes.js";
-import dashboardRouter from "./src/routes/dashboardRoutes.js";
+import employeesRouter from "./src/routes/employeesRoutes.js"
+import userRouter from "./src/routes/userRoutes.js"
+import teamRouter from "./src/routes/teamsRoutes.js"
+import projectRouter from "./src/routes/projectsRoutes.js"
+import materialsRouter from "./src/routes/materialsRoutes.js"
 
-const app = express();
+const app = express()
 
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(
-  cors({
-    origin: "https://localhost:5173",
-    credentials: true,
-    methods: "GET, POST, PATCH, DELETE, PUT",
-    allowedHeaders: "Content-Type",
-  })
-);
+app.use(express.json())
+app.use(morgan('dev'))
+app.use(cors({
+    origin: "http://localhost:5173",
+    methods: 'GET, POST, PATCH, DELETE',
+    allowedHeaders: 'Content-Type'
+}))
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send("Something got wrong");
@@ -82,8 +77,8 @@ app.post("/project-manager/token", (req, res) => {
 });
 
 // Configurar servidor HTTPS
-const privateKey = fs.readFileSync("C:/Windows/System32/cert.key", "utf8");
-const certificate = fs.readFileSync("C:/Windows/System32/cert.crt", "utf8");
+const privateKey = fs.readFileSync("C:/Users/rbojo/OneDrive/Escritorio/certificados/cert.key", "utf8");
+const certificate = fs.readFileSync("C:/Users/rbojo/OneDrive/Escritorio/certificados/cert.crt", "utf8");
 const credentials = { key: privateKey, cert: certificate };
 const httpsServer = https.createServer(credentials, app);
 
