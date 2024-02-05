@@ -113,7 +113,17 @@ export const getTeams = async (req, res) => {
                     GROUP BY projects.id_project
                 ) AS project_info,
                 leader_info.username AS leader_username,
-                leader_info.id_user AS leader_id
+                leader_info.id_user AS leader_id,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            "id_user", team_members.id_user,
+                            "username", team_members.username
+                        )
+                    )
+                    FROM users AS team_members
+                    WHERE team_members.team_fk = teams.id_team AND team_members.rol_fk = 3
+                ) AS team_members_info
             FROM
                 teams
             LEFT JOIN users AS leader_info ON teams.id_team = leader_info.team_fk AND leader_info.rol_fk = 2
@@ -160,7 +170,8 @@ export const getTeams = async (req, res) => {
             LIMIT 15 OFFSET ?
             `;
 
-            const [ results ] = await connection.promise().query(querySearch, [(page - 1) * 15, search])
+            const searchTerm = `%${search}%`
+            const [ results ] = await connection.promise().query(querySearch, [searchTerm, (page - 1) * 15])
 
             if (results.length == 0) {
                 return res.json({
