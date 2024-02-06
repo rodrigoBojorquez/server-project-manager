@@ -93,7 +93,29 @@ export const createProject = async (req, res) => {
     }
 }
 
-// * Get project
+// * Get projet/:id
+export const getProjet = async (req, res) => {
+    const error = validationResult(req);
+    if(!error.isEmpty()){
+        return res.status(400).json({
+            error: error.array()
+        });
+    }
+
+    try {
+        const id = req.params.id
+        const search = 'SELECT projects.*, project_states.state_name FROM projects JOIN project_states ON projects.project_state_fk = project_states.id_project_state WHERE projects.id_project = ?;';
+        const [results] = await connection.promise().query(search, id);
+
+        if (!results.length == 0) {
+            return res.json(results);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+// * Get projects
 export const getProjects = async (req, res) => {
     const errors = validationResult(req)
 
@@ -110,8 +132,10 @@ export const getProjects = async (req, res) => {
             const querySearch = `
             SELECT 
                 projects.id_project, 
-                projects.project_name, 
+                projects.project_name,
+                projects.project_description, 
                 project_states.state_name, 
+                projects.project_state_fk,
                 projects.create_date,
                 users.id_user,
                 users.username,
@@ -158,7 +182,9 @@ export const getProjects = async (req, res) => {
             SELECT 
                 projects.id_project, 
                 projects.project_name, 
-                project_states.state_name, 
+                project_states.state_name,
+                projects.project_description, 
+                projects.project_state_fk,
                 projects.create_date,
                 users.id_user AS id_leader,
                 users.username AS leader_username,
@@ -203,7 +229,9 @@ export const getProjects = async (req, res) => {
             SELECT 
                 projects.id_project, 
                 projects.project_name, 
-                project_states.state_name, 
+                project_states.state_name,
+                projects.project_description, 
+                projects.project_state_fk,
                 projects.create_date,
                 users.id_user AS id_leader,
                 users.username AS leader_username,
@@ -260,6 +288,8 @@ export const updateProject = async (req, res) => {
     }
 
     const { id_project, project_name, project_description, project_state_fk, materials } = req.body;
+    console.log(materials);
+
 
     try {
         const updateFields = [];
@@ -288,7 +318,7 @@ export const updateProject = async (req, res) => {
         if (materials && materials.length > 0) {
             const updateMaterialsQueries = materials.map(material => ({
                 query: 'UPDATE project_materials SET quantity = ? WHERE project_fk = ? AND material_fk = ?',
-                values: [material.quantity, id_project, material.id_material]
+                values: [material.quantity, id_project, material.id_project_material]
             }));
 
             for (const updateQuery of updateMaterialsQueries) {

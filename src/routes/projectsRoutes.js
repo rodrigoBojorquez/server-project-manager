@@ -1,6 +1,6 @@
 import express from "express"
 import { body, query, param } from "express-validator"
-import { createProject, deleteProject, getProjects, updateProject } from "../controllers/projects.js"
+import { createProject, deleteProject, getProjects, updateProject, getProjet } from "../controllers/projects.js"
 import { verifyToken } from "../middleware/validateToken.js"
 import {  assignPermissions } from "../middleware/assignPermissions.js"
 
@@ -36,6 +36,7 @@ const deleteProjectChain = [
 projectRouter.post("/project", createProject)
 // projectRouter.get("/projects",verifyToken,assignPermissions(['administrator','team leader']) , getProjects)
 projectRouter.get("/projects",getProjectsChain, getProjects)
+projectRouter.get("/project/:id",getProjet);
 projectRouter.put("/projects/:id",verifyToken, assignPermissions('administrator'), updateProject)
 // projectRouter.delete("/projects/:id",verifyToken, assignPermissions('administrator'), deleteProject)
 projectRouter.delete("/projects/:id", deleteProject)
