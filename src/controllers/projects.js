@@ -131,6 +131,7 @@ export const getProjects = async (req, res) => {
                 projects.project_name, 
                 project_states.state_name, 
                 projects.create_date,
+                projects.project_description,
                 team_leader.id_user AS id_leader,
                 team_leader.username AS leader_username,
                 team_leader.email AS leader_email,
@@ -181,6 +182,7 @@ export const getProjects = async (req, res) => {
                 projects.project_name, 
                 project_states.state_name, 
                 projects.create_date,
+                projects.project_description,
                 team_leader.id_user AS id_leader,
                 team_leader.username AS leader_username,
                 team_leader.email AS leader_email,
@@ -231,6 +233,7 @@ export const getProjects = async (req, res) => {
                 projects.project_name, 
                 project_states.state_name, 
                 projects.create_date,
+                projects.project_description,
                 team_leader.id_user AS id_leader,
                 team_leader.username AS leader_username,
                 team_leader.email AS leader_email,
@@ -324,11 +327,10 @@ export const updateProject = async (req, res) => {
 
     // Actualizar la tabla 'project_materials'
     if (materials && materials.length > 0) {
-      const updateMaterialsQueries = materials.map((material) => ({
-        query:
-          "UPDATE project_materials SET quantity = ? WHERE project_fk = ? AND material_fk = ?",
-        values: [material.quantity, id_project, material.id_material],
-      }));
+      const updateMaterialsQueries = materials.map(material => ({
+        query: 'UPDATE project_materials SET quantity = ? WHERE project_fk = ? AND material_fk = ?',
+        values: [material.quantity, id_project, material.id_project_material]
+    }));
 
       for (const updateQuery of updateMaterialsQueries) {
         await connection.promise().query(updateQuery.query, updateQuery.values);

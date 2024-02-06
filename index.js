@@ -54,8 +54,9 @@ app.post("/project-manager/token", (req, res) => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(401).json({
-      error: "token not provided",
+    return res.json({
+      isValid: false,
+      error: "token not provided"
     });
   }
 

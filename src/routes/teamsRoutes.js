@@ -34,9 +34,12 @@ const teamRouter = express.Router()
 // ]
 
 // ROUTES HERE
-teamRouter.post("/team",verifyToken,assignPermissions('administrator') , createTeam)
-teamRouter.get("/team",verifyToken,assignPermissions(['administrator','team leader','employee']), getTeams)
-teamRouter.put("/team/:id",verifyToken,assignPermissions('administrator') , updateTeam)
+// teamRouter.post("/team",verifyToken,assignPermissions('administrator') , createTeam)
+teamRouter.post("/team", createTeam)
+// teamRouter.get("/team",verifyToken,assignPermissions(['administrator','team leader','employee']), getTeams)
+teamRouter.get("/team", getTeams)
+// teamRouter.put("/team/:id",verifyToken,assignPermissions('administrator', "team leader") , updateTeam)
+teamRouter.put("/team/:id" , updateTeam)
 teamRouter.delete("/team/:id",verifyToken,assignPermissions('administrator') , deleteTeam)
 
 
