@@ -243,13 +243,16 @@ export const updateTeam = async (req, res) => {
         //     meesage: "team updated successfully",
         //     data: oldTeam[0]
         // })
-
         const updatedTeam = {
             teamName: teamName || oldTeam[0].team_name,
             projectId: projectId || oldTeam[0].project_fk,
             leaderId: leaderId || oldTeam[0].leader_info.leader_id,
             members:  members || oldTeam[0].members_list
         }
+
+        // return res.json({
+        //     newTeam: updatedTeam
+        // })
 
         if (JSON.stringify(updatedTeam.leaderId) !== JSON.stringify(oldTeam[0].leader_info.leader_id)) {
             // validate leader
@@ -270,31 +273,32 @@ export const updateTeam = async (req, res) => {
         }
 
         // validate the memebers is they changed
-        if (JSON.stringify(updatedTeam.members) !== JSON.stringify(oldTeam[0].members_list)) {
-            const querySearchUsersId = "SELECT * FROM users WHERE id_user = ?"
-            for (const id of updatedTeam.members) {
-                try {
-                    const [result] = await connection.promise().query(querySearchUsersId, [id])
-                    if (result[0] == undefined || result[0].team_fk != null || result[0].rol_fk != 3) {
-                        throw new Error(`invalid user with id ${id}`)
-                    }
+        if (updatedTeam.members !== oldTeam[0].members_list) {
+            // const querySearchUsersId = "SELECT * FROM users WHERE id_user = ?"
+            // for (const idMember of updatedTeam.members) {
+            //     try {
+            //         const [result] = await connection.promise().query(querySearchUsersId, [idMember])
+            //         if (result[0] == undefined || (result[0].team_fk != null || result[0].team_fk == id ) || result[0].rol_fk != 3) {
+            //             throw new Error(`invalid user with id ${idMember}`)
+            //         }
             
-                } catch (err) {
-                    return res.status(403).json({
-                        error: err.message
-                    })
-                }
-            }
+            //     } catch (err) {
+            //         return res.status(403).json({
+            //             error: err.message
+            //         })
+            //     }
+            // }
 
             const queryUpdateMember = "UPDATE users SET team_fk  = ? WHERE id_user = ?"
-
-            for (const id of  oldTeam[0].members_list) {
-                // remove the old members
-                await connection.promise().query(queryUpdateMember, [null, id])
+            if (oldTeam[0].members_list !== null) {
+                for (const id of  oldTeam[0].members_list) {
+                    // remove the old members
+                    await connection.promise().query(queryUpdateMember, [null, id])
+                }
             }
-            for (const id of  updatedTeam.members) {
+            for (const idMember of  updatedTeam.members) {
                 // add the new members to the team
-                await connection.promise().query(queryUpdateMember, [updatedTeam.projectId, id])
+                await connection.promise().query(queryUpdateMember, [id, parseInt(idMember)])
             }
         }
 
