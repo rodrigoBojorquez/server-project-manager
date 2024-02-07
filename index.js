@@ -83,8 +83,8 @@ app.post("/project-manager/token", (req, res) => {
 });
 
 // Configurar servidor HTTPS
-const privateKey = fs.readFileSync("C:/Users/rbojo/OneDrive/Escritorio/certificados/cert.key", "utf8");
-const certificate = fs.readFileSync("C:/Users/rbojo/OneDrive/Escritorio/certificados/cert.crt", "utf8");
+const privateKey = fs.readFileSync("C:/Windows/System32/cert.key", "utf8");
+const certificate = fs.readFileSync("C:/Windows/System32/cert.crt", "utf8");
 const credentials = { key: privateKey, cert: certificate };
 const httpsServer = https.createServer(credentials, app);
 

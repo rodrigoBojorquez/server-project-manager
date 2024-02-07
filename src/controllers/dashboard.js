@@ -23,10 +23,7 @@ export const getPieChartData = async (req, res) => {
 
         const [ results ] = await connection.promise().query(query)
 
-        return res.json({
-            message: "successfull request",
-            data:  results[0]
-        })
+        return res.json(results[0])
     }
     catch (err) {
         return res.status(500).json({
@@ -56,10 +53,7 @@ export const getPendingProjects = async (req, res) => {
 
         const [ results ] = await connection.promise().query(query)
 
-        return res.json({
-            message: 'successful request',
-            data: results
-        })
+        return res.json(results)
     }
     catch (err) {
         return res.status(500).json({
@@ -82,10 +76,7 @@ export const getLastMaterialsAdded = async (req, res) => {
         const query = "SELECT * FROM materials ORDER BY create_date DESC LIMIT 5";
         const [ materials ] = await connection.promise().query(query)
 
-        return res.status(200).json({
-            message: "successfull request",
-            data: materials
-        })
+        return res.json(materials)
     } catch (err) {
         return res.status(500).json({
             error: err.message
@@ -108,10 +99,7 @@ export const getCountUsersRol = async (req, res) => {
         
         const [ userCountsByRol ] = await connection.promise().query(query)
 
-        return res.status(200).json({
-            message: "successfull request",
-            data: userCountsByRol
-        })
+        return res.status(200).json(userCountsByRol);
     } catch (err) {
         return res.status(500).json({
             error: err.message
