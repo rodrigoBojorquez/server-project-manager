@@ -137,9 +137,10 @@ export const getProjects = async (req, res) => {
                 project_states.state_name, 
                 projects.project_state_fk,
                 projects.create_date,
-                users.id_user,
-                users.username,
-                users.email,
+                projects.project_description,
+                team_leader.id_user AS id_leader,
+                team_leader.username AS leader_username,
+                team_leader.email AS leader_email,
                 (
                     SELECT JSON_ARRAYAGG(
                         JSON_OBJECT(
@@ -186,9 +187,10 @@ export const getProjects = async (req, res) => {
                 projects.project_description, 
                 projects.project_state_fk,
                 projects.create_date,
-                users.id_user AS id_leader,
-                users.username AS leader_username,
-                users.email AS leader_email,
+                projects.project_description,
+                team_leader.id_user AS id_leader,
+                team_leader.username AS leader_username,
+                team_leader.email AS leader_email,
                 (
                     SELECT JSON_ARRAYAGG(
                         JSON_OBJECT(
@@ -233,9 +235,10 @@ export const getProjects = async (req, res) => {
                 projects.project_description, 
                 projects.project_state_fk,
                 projects.create_date,
-                users.id_user AS id_leader,
-                users.username AS leader_username,
-                users.email AS leader_email,
+                projects.project_description,
+                team_leader.id_user AS id_leader,
+                team_leader.username AS leader_username,
+                team_leader.email AS leader_email,
                 (
                     SELECT JSON_ARRAYAGG(
                         JSON_OBJECT(

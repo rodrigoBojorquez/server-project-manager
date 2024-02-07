@@ -54,8 +54,9 @@ app.post("/project-manager/token", (req, res) => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(401).json({
-      error: "token not provided",
+    return res.json({
+      isValid: false,
+      error: "token not provided"
     });
   }
 
@@ -82,8 +83,8 @@ app.post("/project-manager/token", (req, res) => {
 });
 
 // Configurar servidor HTTPS
-const privateKey = fs.readFileSync("C:/Windows/System32/cert.key", "utf8");
-const certificate = fs.readFileSync("C:/Windows/System32/cert.crt", "utf8");
+const privateKey = fs.readFileSync(process.env.CERTCA, "utf8");
+const certificate = fs.readFileSync(process.env.CERTCR, "utf8");
 const credentials = { key: privateKey, cert: certificate };
 const httpsServer = https.createServer(credentials, app);
 

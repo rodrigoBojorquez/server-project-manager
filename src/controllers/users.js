@@ -44,21 +44,19 @@ export const createUser  = async (req, res) =>  {
 
         transporter.sendMail(mailOptions, (err, resp) => {
             if (err) {
+                console.error("Error sending email:");
                 return res.status(500).json({
                     error: "there was an error sending the email"
-                })
-            }
-            else {
+                });
+            } else {
+                console.log("Email sent successfully:");
                 return res.json({
-                    message: resp
-                })
+                    message: "User added successfully, now activate",
+                    data: response
+                });
             }
-        })
-
-        return res.json({
-            message: "user added successfully, now activate",
-            data: response
-        })
+        });
+        
     }
     catch (err) {
         return res.status(500).json({

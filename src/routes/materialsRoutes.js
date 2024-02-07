@@ -13,10 +13,10 @@ const materialsRouter = express.Router()
 //     body("measure").trim().isString().isLength({min: 1, max: 255}).withMessage("invalid unit of measurement")
 // ]
 
-// const getMaterialsChain = [
-//     query("page").isInt({min: 1}).withMessage("invalid page"),
-//     query("search").trim().isString().isLength({min:3, max:255}).optional().withMessage("minimun 3 chars to search")    
-// ]
+const getMaterialsChain = [
+    query("page").isInt({min: 1}).withMessage("invalid page"),
+    query("search").trim().isString().isLength({min:3, max:255}).optional().withMessage("minimun 3 chars to search")    
+]
 
 // const updateMaterialChain = [
 //     param("id").isNumeric({no_symbols: true}).withMessage("invalid id format"),
